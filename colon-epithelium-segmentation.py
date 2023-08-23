@@ -1,9 +1,11 @@
 import fast
 import time
+import os
 
 modelPath = "/home/agustina/fastpathology/datahub/colon-epithelium-segmentation-he-model/HE_IBDColEpi_512_2class_140222.onnx"
 WSIPath = "/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs"
-
+output_dir = 'colon_epithelium_tiffs'
+WSI_fn = os.path.splitext(os.path.basename(WSIPath))[0]
 
 patchSize = 512
 
@@ -66,6 +68,9 @@ print(f"inference plus rendering took {end-start} seconds")
 finished = fast.RunUntilFinished.create()\
     .connect(stitcher)
 
-exporter = fast.TIFFImagePyramidExporter.create('Lady.tiff')\
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+
+exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output_dir,WSI_fn+'.tiff'))\
     .connect(finished)\
     .run()
