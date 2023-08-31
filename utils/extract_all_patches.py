@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 WSI_path = '/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs'
 TIFF_path_1 = 'nuclei_tiffs/Lady.tiff'
-TIFF_path_2 = 'colon_epithelium_tiffs/Lady.tiff'
+TIFF_path_2 = 'colon_epithelium_tiffs/Lady_epithelium_with_fastpatology.tiff'
 bgremoved = True
-output_dir = 'Lady'
+output_dir = 'Lady_fastpathology'
 
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
@@ -20,6 +20,8 @@ if not os.path.exists(output_dir):
 
 level = 0
 patch_size = 1024
+CHANNEL_NUCELI = 2
+CHANNEL_EPITHELIUM = 1
 
 def get_access_to_tiff(tiff_path : str, level : int) -> tuple:
 
@@ -73,8 +75,8 @@ for y in tqdm(range(0,H-patch_size,patch_size)):
                 continue
 
         mask = np.zeros((patch_size,patch_size,3))
-        mask[:,:,2] = get_mask_from_access(access_1, x, y, W, H, patch_size)
-        mask[:,:,1] = get_mask_from_access(access_2, x, y, W, H, patch_size)
+        mask[:,:,CHANNEL_NUCELI] = get_mask_from_access(access_1, x, y, W, H, patch_size)
+        mask[:,:,CHANNEL_EPITHELIUM] = get_mask_from_access(access_2, x, y, W, H, patch_size)
             
         cv.imwrite(os.path.join(output_dir,'masks',f"{output_dir}_{level}_{y}_{x}.png"),mask)
         cv.imwrite(os.path.join(output_dir,'patches',f"{output_dir}_{level}_{y}_{x}.png"),wsi_image[:,:,::-1])
