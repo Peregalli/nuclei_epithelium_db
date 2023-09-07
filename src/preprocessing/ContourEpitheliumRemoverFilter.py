@@ -9,12 +9,13 @@ from skimage.feature import peak_local_max
 from HoleFillFilter import HoleFillFilter
 
 class ContourEpitheliumRemoverFilter():
-    def __init__(self, background_proportion : np.float32 = 0.15,intersection_threshold : np.float32 = 0.15):
+    def __init__(self, background_proportion : np.float32 = 0.15,intersection_threshold : np.float32 = 0.15, kernel_size_erode : int = 5, watershed_min_distance : int = 25):
         self.tissue_hole_fill_filter = HoleFillFilter()
         self.background_proportion = background_proportion
         self.threshold_tissue_segementatior = 230
         self.intersection_threshold = intersection_threshold
-        self.kernel_size_erode = 5
+        self.kernel_size_erode = kernel_size_erode
+        self.watershed_min_distance = watershed_min_distance
   
     def apply(self,image : np.ndarray, mask : np.ndarray):
         
@@ -37,7 +38,7 @@ class ContourEpitheliumRemoverFilter():
             contour_pixels = (erode_mask == 0 )&(mask == 255)
 
             #Separate epithelium 
-            labels = self.__watershed_filter(mask)
+            labels = self.__watershed_filter(mask, min_distance=self.watershed_min_distance )
             new_mask = self.__eliminate_contour_epithelium(labels,contour_pixels,self.intersection_threshold)
 
             return new_mask

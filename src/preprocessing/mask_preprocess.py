@@ -5,6 +5,7 @@ from HoleFillFilter import HoleFillFilter
 from NucleiCleaningFilter import NucleiCleaningFilter
 from ContourEpitheliumRemoverFilter import ContourEpitheliumRemoverFilter
 import argparse
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Preprocessing of nuclei and glands masks')
 parser.add_argument('-s', '--src_folder', help="Root to patches and original mask folder. Both masks and folder must be in the same folder", type=str)
@@ -28,23 +29,23 @@ def main():
 
     CHANNEL_EPITHELIUM = 1
     CHANNEL_NUCLEI = 2
-    resize_dim = 256
+    RESIZE_DIM = 1024
     
     fn_path = os.listdir(PATH_TO_MASKS)
 
     #Define filters
-    epithelium_fill_filter = HoleFillFilter()
+    epithelium_fill_filter = HoleFillFilter(kernel_size=int(0.02*RESIZE_DIM))
     nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=CHANNEL_NUCLEI, epithelium_channel= CHANNEL_EPITHELIUM)     
-    contour_epithelium_filter = ContourEpitheliumRemoverFilter()
+    contour_epithelium_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*RESIZE_DIM), watershed_min_distance= int(0.1*RESIZE_DIM))
 
-    for fn in fn_path:
+    for fn in tqdm(fn_path):
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn))
         image = cv.imread(os.path.join(PATH_TO_IMAGE,fn))
 
         #Resize image and mask
         
-        image_reshaped = cv.resize(image.copy(), (resize_dim,resize_dim), interpolation = cv.INTER_CUBIC)
-        mask_reshaped = ((cv.resize(mask.copy(), (resize_dim,resize_dim), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
+        image_reshaped = cv.resize(image.copy(), (RESIZE_DIM,RESIZE_DIM), interpolation = cv.INTER_CUBIC)
+        mask_reshaped = ((cv.resize(mask.copy(), (RESIZE_DIM,RESIZE_DIM), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
 
         #Apply filters
         mask_reshaped[:,:,CHANNEL_EPITHELIUM] = epithelium_fill_filter.apply(mask_reshaped[:,:,CHANNEL_EPITHELIUM])
