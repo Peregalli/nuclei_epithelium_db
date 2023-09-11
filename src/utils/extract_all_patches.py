@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 WSI_path = '/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs'
 TIFF_path_1 = 'nuclei_tiffs/Lady.tiff'
-TIFF_path_2 = 'colon_epithelium_tiffs/Lady_epithelium_with_fastpatology.tiff'
+TIFF_path_2 = 'colon_epithelium_tiffs/Lady_thresh_02.tiff'
 bgremoved = True
-output_dir = 'Lady_fastpathology'
+output_dir = 'Lady_threshold_02'
 
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
