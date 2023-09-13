@@ -1,12 +1,13 @@
 import fast
 import numpy as np
 import os
-from src.PosProcessingPO import PosprocessingPO
+from preprocessing.NucleiCleaningPO import NucleiCleaningPO
+from preprocessing.HoleFillFilterPO import HoleFillFilterPO
 
 modelPath = "/home/agustina/fastpathology/datahub/colon-epithelium-segmentation-he-model/HE_IBDColEpi_512_2class_140222.onnx"
 WSIPath = "/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs"
 output_dir = 'colon_epithelium_tiffs'
-rendering = True
+TIFF_path_1 = 'nuclei_tiffs/Lady.tiff'
 WSI_fn = os.path.splitext(os.path.basename(WSIPath))[0]
 
 #Hyperparameters
@@ -21,15 +22,24 @@ importer = fast.WholeSlideImageImporter\
 
 imageRenderer = fast.ImageRenderer.create().connect(importer)
 
+NucleiSegmentationImporter = fast.TIFFImagePyramidImporter.create(TIFF_path_1)
+
 tissueSegmentation = fast.TissueSegmentation.create(threshold = 70).connect(importer)
 
 patchGenerator = fast.PatchGenerator.create(patchSize, 
                                             patchSize, 
                                             magnification=magnification, 
-                                            overlapPercent=overlapPercent,
-                                            maskThreshold = 0.02)\
+                                            overlapPercent=overlapPercent)\
     .connect(0, importer)\
     .connect(1, tissueSegmentation)
+
+patchGeneratorNuclei = fast.PatchGenerator.create(patchSize, 
+                                            patchSize, 
+                                            magnification=magnification, 
+                                            overlapPercent=overlapPercent,
+                                            maskThreshold = 0.02)\
+                                                .connect(0, NucleiSegmentationImporter)\
+                                                    .connect(1, tissueSegmentation)
 
 # Create neural network object ###
 nn = fast.NeuralNetwork.create(
@@ -37,18 +47,20 @@ nn = fast.NeuralNetwork.create(
     modelFilename=modelPath,
     ).connect(0, patchGenerator)
 
-post_process = PosprocessingPO.create(threshold = 0.2).connect(0,nn).connect(1,patchGenerator)
+HoleFilterProcess = HoleFillFilterPO.create(epithelium_threshold = 0.2,
+                                            patchsize = patchSize).connect(0,nn).connect(1,patchGenerator).connect(2,patchGeneratorNuclei)
+#NucleiCleaningProcess = NucleiCleaningPO.create().connect(0,patchGeneratorNuclei).connect(1,HoleFilterProcess)
 # Create patch stitcher to generate pyramidal tiff output
-stitcher = fast.PatchStitcher.create().connect(0, post_process)
+stitcher = fast.PatchStitcher.create().connect(0, HoleFilterProcess)
 
 
 # Create renderers to show both original WSI and segmentation output
-if rendering :
-    wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
-    segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green()}).connect(stitcher)
+
+wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
+segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green(),2:fast.Color.Red()}).connect(stitcher).connect(NucleiSegmentationImporter)
 
 # Create window to display segmentation
-    fast.SimpleWindow2D.create()\
+fast.SimpleWindow2D.create()\
         .connect(wsiRenderer)\
             .connect(segmentationRenderer).run()
     
@@ -59,6 +71,7 @@ finished = fast.RunUntilFinished.create()\
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
-exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output_dir,WSI_fn+'_thresh_02.tiff'))\
+exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output_dir,WSI_fn+'.tiff'))\
     .connect(finished)\
     .run()
+

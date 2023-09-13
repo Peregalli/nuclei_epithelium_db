@@ -1,7 +1,8 @@
 import fast
 
-WSIPath = "C:/Users/nicol/Documents/FING/proyecto/datos-majo/imagenes-biopsias/Doctorado operadas/44-D5.svs"
-segmentationPath = "C:/Users/nicol/fastpathology/projects/nucleos/results/44-D5/Nuclei segmentation/Segmentation/Segmentation.tiff"
+WSIPath = '/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs'
+segmentationPath = 'colon_epithelium_tiffs/Lady.tiff'
+segmentationPath_2 = 'nuclei_tiffs/Lady.tiff'
 
 level = 0
 
@@ -12,13 +13,15 @@ WSIImporter = fast.WholeSlideImageImporter\
     .create(WSIPath)
 
 segmentationImporter = fast.TIFFImagePyramidImporter.create(segmentationPath)
+segmentationImporter_2 = fast.TIFFImagePyramidImporter.create(segmentationPath_2)
 
 ### Create renderers to show both original WSI and segmentation output ###
 WSIRenderer = fast.ImagePyramidRenderer.create().connect(0, WSIImporter)
-segmentationRenderer = fast.SegmentationRenderer.create(borderOpacity=0.5, colors={1: fast.Color.Green()}).connect(segmentationImporter)
+segmentationRenderer_1 = fast.SegmentationRenderer.create(borderOpacity=0.5, colors={0: fast.Color.Green()}).connect(0,segmentationImporter)
+segmentationRenderer_2 = fast.SegmentationRenderer.create(borderOpacity=0.5, colors={0: fast.Color.Red()}).connect(segmentationImporter_2)
 
 ### Create window to display segmentation###   
 fast.SimpleWindow2D.create()\
     .connect(WSIRenderer)\
-    .connect(segmentationRenderer)\
+    .connect(segmentationRenderer_1)\
     .run()

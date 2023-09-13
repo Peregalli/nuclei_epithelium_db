@@ -6,7 +6,7 @@ from scipy import ndimage as ndi
 from skimage.segmentation import watershed
 from skimage.feature import peak_local_max
 
-from HoleFillFilter import HoleFillFilter
+from preprocessing.HoleFillFilter import HoleFillFilter
 
 class ContourEpitheliumRemoverFilter():
     def __init__(self, background_proportion : np.float32 = 0.15,intersection_threshold : np.float32 = 0.15, kernel_size_erode : int = 5, watershed_min_distance : int = 25):

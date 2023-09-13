@@ -8,9 +8,10 @@ from tqdm import tqdm
 
 WSI_path = '/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs'
 TIFF_path_1 = 'nuclei_tiffs/Lady.tiff'
-TIFF_path_2 = 'colon_epithelium_tiffs/Lady_thresh_02.tiff'
+TIFF_path_2 = 'colon_epithelium_tiffs/Lady.tiff'
 bgremoved = True
-output_dir = 'Lady_threshold_02'
+output_dir = 'Lady'
+patch_visualization = True
 
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
@@ -81,10 +82,10 @@ for y in tqdm(range(0,H-patch_size,patch_size)):
         cv.imwrite(os.path.join(output_dir,'masks',f"{output_dir}_{level}_{y}_{x}.png"),mask)
         cv.imwrite(os.path.join(output_dir,'patches',f"{output_dir}_{level}_{y}_{x}.png"),wsi_image[:,:,::-1])
         
-        plt.imshow(wsi_image)
-        plt.imshow(mask,alpha = 0.3)
-        plt.savefig(os.path.join(output_dir,f'image_{level}_{y}_{x}.png'))
-        plt.show()
+        if patch_visualization:
+            plt.imshow(wsi_image)
+            plt.imshow(mask,alpha = 0.3)
+            plt.savefig(os.path.join(output_dir,f'image_{level}_{y}_{x}.png'))
 
 
 
