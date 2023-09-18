@@ -17,14 +17,14 @@ class NucleiCleaningPO(fast.PythonProcessObject):
     def execute(self):
         #Get prediction 
         prediction = self.getInputData(0)
-        epithelium = np.asarray(self.getInputData(1))
-        new_prediction = ((np.asarray(prediction)[...,1]>self.threshold)*255).astype(np.uint8)
-        mask = np.zeros((epithelium.shape[0],epithelium.shape[1],3))
-        mask[:,:,self.CHANNEL_EPITHELIUM] = epithelium
-        mask[:,:,self.CHANNEL_NUCLEI] = new_prediction
+        #epithelium = np.asarray(self.getInputData(1))
+        #new_prediction = ((np.asarray(prediction)[...,1]>self.threshold)*255).astype(np.uint8)
+        #mask = np.zeros((prediction .shape[0],prediction.shape[1],3))
+        #mask[:,:,self.CHANNEL_EPITHELIUM] = epithelium
+        #mask[:,:,self.CHANNEL_NUCLEI] = new_prediction
         #Postprocesing prediction
-        mask_fill = (self.nuclei_cleaning_filter.apply(mask)/255).astype(np.uint8)
+        #mask_fill = (self.nuclei_cleaning_filter.apply(mask)/255).astype(np.uint8)
 
-        new_output_image = fast.Image.createFromArray(mask_fill)
+        new_output_image = fast.Image.createFromArray(prediction)
         new_output_image.setSpacing(prediction.getSpacing())
         self.addOutputData(0, new_output_image)

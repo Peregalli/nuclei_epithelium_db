@@ -34,7 +34,6 @@ def main():
     fn_path = os.listdir(PATH_TO_MASKS)
 
     #Define filters
-    epithelium_fill_filter = HoleFillFilter(kernel_size=int(0.02*RESIZE_DIM))
     nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=CHANNEL_NUCLEI, epithelium_channel= CHANNEL_EPITHELIUM)     
     contour_epithelium_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*RESIZE_DIM), watershed_min_distance= int(0.1*RESIZE_DIM))
 
@@ -48,7 +47,6 @@ def main():
         mask_reshaped = ((cv.resize(mask.copy(), (RESIZE_DIM,RESIZE_DIM), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
 
         #Apply filters
-        mask_reshaped[:,:,CHANNEL_EPITHELIUM] = epithelium_fill_filter.apply(mask_reshaped[:,:,CHANNEL_EPITHELIUM])
         mask_reshaped = nuclei_cleaning_filter.apply(mask_reshaped)
         mask_reshaped[:,:,CHANNEL_EPITHELIUM] = contour_epithelium_filter.apply(image_reshaped,mask_reshaped[:,:,CHANNEL_EPITHELIUM])
 

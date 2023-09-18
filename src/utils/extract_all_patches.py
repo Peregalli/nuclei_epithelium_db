@@ -11,7 +11,7 @@ TIFF_path_1 = 'nuclei_tiffs/Lady.tiff'
 TIFF_path_2 = 'colon_epithelium_tiffs/Lady.tiff'
 bgremoved = True
 output_dir = 'Lady'
-patch_visualization = True
+patch_visualization = False
 
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
