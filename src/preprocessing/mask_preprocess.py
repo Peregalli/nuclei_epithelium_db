@@ -1,7 +1,6 @@
 import numpy as np
 import cv2 as cv
 import os
-from HoleFillFilter import HoleFillFilter
 from NucleiCleaningFilter import NucleiCleaningFilter
 from ContourEpitheliumRemoverFilter import ContourEpitheliumRemoverFilter
 import argparse
@@ -29,7 +28,7 @@ def main():
 
     CHANNEL_EPITHELIUM = 1
     CHANNEL_NUCLEI = 2
-    RESIZE_DIM = 1024
+    RESIZE_DIM = 512
     
     fn_path = os.listdir(PATH_TO_MASKS)
 

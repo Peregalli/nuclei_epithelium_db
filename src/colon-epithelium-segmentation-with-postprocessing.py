@@ -1,11 +1,10 @@
 import fast
 import numpy as np
 import os
-from preprocessing.NucleiCleaningPO import NucleiCleaningPO
 from preprocessing.HoleFillFilterPO import HoleFillFilterPO
 
 modelPath = "/home/agustina/fastpathology/datahub/colon-epithelium-segmentation-he-model/HE_IBDColEpi_512_2class_140222.onnx"
-WSIPath = "/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/imágenes biopsias particulares/Lady.svs"
+WSIPath = "/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/Doctorado operadas/44-pre.svs"
 output_dir = 'colon_epithelium_tiffs'
 
 WSI_fn = os.path.splitext(os.path.basename(WSIPath))[0]
@@ -13,7 +12,7 @@ WSI_fn = os.path.splitext(os.path.basename(WSIPath))[0]
 #Hyperparameters
 patchSize = 512
 magnification = 10
-overlapPercent = 0.1
+overlapPercent = 0.3
 scaleFactor=1.0
 confidence_threshold = 0.2
 
