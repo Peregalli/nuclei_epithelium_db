@@ -1,55 +1,68 @@
 import fast
 import time
 import os
+import argparse
 
-modelPath = "/home/agustina/fastpathology/datahub/nuclei-segmentation-model/high_res_nuclei_unet.onnx"
-WSIPath = "/home/agustina/Documents/FING/proyecto/WSI/IMÁGENES_BIOPSIAS/Doctorado operadas/44-D5.svs"
-output_dir = 'nuclei_tiffs'
-WSI_fn = os.path.splitext(os.path.basename(WSIPath))[0]
-
-patchSize = 256
-
-magnification = 20
-overlapPercent = 0.1
-scaleFactor= 1/255
-
-importer = fast.WholeSlideImageImporter.create(WSIPath)
-
-tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
-
-patchGenerator = fast.PatchGenerator.create(patchSize, 
-                                            patchSize, 
-                                            magnification=magnification, 
-                                            overlapPercent=overlapPercent)\
-    .connect(0, importer)\
-    .connect(1, tissueSegmentation)
-
-# Create neural network object
-nn = fast.SegmentationNetwork.create(
-    scaleFactor=scaleFactor,
-    modelFilename=modelPath,
-    # dimensionOrdering='channel-first'
-    ).connect(0, patchGenerator)
+parser = argparse.ArgumentParser(description='Nuclei inference with high_res_nuclei_unet.onnx model.')
+parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str)
+parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
+parser.add_argument('-o', '--output_folder', default = 'nuclei_tiffs', type=str)
 
 
-# Create patch stitcher to generate pyramidal tiff output 
-stitcher = fast.PatchStitcher.create().connect(0, nn)
+def nuclei_segmentation_wsi(wsi_path : str , model_path : str, output : str):
 
-# Create renderers to show both original WSI and segmentation output 
-wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
-segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green()}).connect(stitcher)
+    WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
-# Create window to display segmentation###   
-fast.SimpleWindow2D.create()\
-    .connect(wsiRenderer)\
-    .connect(segmentationRenderer).run()
+    #Hiperparameters
+    patchSize = 256
+    magnification = 20
+    overlapPercent = 0.1
+    scaleFactor= 1/255
 
-finished = fast.RunUntilFinished.create()\
-    .connect(stitcher)
+    importer = fast.WholeSlideImageImporter.create(wsi_path)
 
-if not os.path.exists(output_dir):
-    os.mkdir(output_dir)
+    tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
 
-exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output_dir,WSI_fn+'.tiff'))\
-    .connect(finished)\
-    .run()
+    patchGenerator = fast.PatchGenerator.create(patchSize, patchSize, 
+                                                magnification=magnification, 
+                                                overlapPercent=overlapPercent)\
+                                                    .connect(0, importer)\
+                                                    .connect(1, tissueSegmentation)
+
+    # Create neural network object
+    nn = fast.SegmentationNetwork.create(
+        scaleFactor=scaleFactor,
+        modelFilename=model_path,
+        # dimensionOrdering='channel-first'
+        ).connect(0, patchGenerator)
+
+
+    # Create patch stitcher to generate pyramidal tiff output 
+    stitcher = fast.PatchStitcher.create().connect(0, nn)
+    
+    # Create renderers to show both original WSI and segmentation output 
+    wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
+    segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green()}).connect(stitcher)
+    
+    # Create window to display segmentation###   
+    fast.SimpleWindow2D.create()\
+        .connect(wsiRenderer)\
+        .connect(segmentationRenderer).run()
+    
+    finished = fast.RunUntilFinished.create()\
+        .connect(stitcher)
+    
+    if not os.path.exists(output):
+        os.mkdir(output)
+    
+    exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output,WSI_fn+'.tiff'))\
+        .connect(finished)\
+        .run()
+    
+    return
+
+if __name__ == "__main__":
+
+    args = parser.parse_args()
+
+    nuclei_segmentation_wsi(args.wsi_path, args.model, args.output_folder)

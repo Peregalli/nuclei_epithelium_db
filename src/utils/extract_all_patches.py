@@ -58,6 +58,8 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
     access_1 = get_access_to_tiff(tiff_path= TIFF_path_1, level= config['level'])
     access_2 = get_access_to_tiff(tiff_path= TIFF_path_2, level= config['level'])
 
+    density_map = np.zeros((H//config['patch_size'], W//config['patch_size']))
+
     for y in tqdm(range(0,H-config['patch_size'],config['patch_size'])):
         for x in range(0,W-config['patch_size'],config['patch_size']):
 
@@ -71,16 +73,23 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
             mask = np.zeros((config['patch_size'],config['patch_size'],3))
             mask[:,:,config['channel_nuclei']] = get_mask_from_access(access_1, x, y, W, H, config['patch_size'])
             mask[:,:,config['channel_epithelium']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'])
+            density_map[y//config['patch_size'],x//config['patch_size']] = np.sum(mask[:,:,config['channel_epithelium']]>0)/(config['patch_size']*config['patch_size'])
 
-            cv.imwrite(os.path.join(output_dir,'masks',f"{output_dir}_{config['level']}_{y}_{x}.png"),mask)
-            cv.imwrite(os.path.join(output_dir,'patches',f"{output_dir}_{config['level']}_{y}_{x}.png"),wsi_image[:,:,::-1])
+            cv.imwrite(os.path.join(config['output_dir'],'masks',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),mask)
+            cv.imwrite(os.path.join(config['output_dir'],'patches',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),wsi_image[:,:,::-1])
 
             if config['patch_visualization']:
                 plt.imshow(wsi_image)
                 plt.imshow(mask,alpha = 0.3)
                 level = config['level']
-                plt.savefig(os.path.join(output_dir,f'image_{level}_{y}_{x}.png'))
-    return
+                plt.savefig(os.path.join(config['output_dir'],f'image_{level}_{y}_{x}.png'))
+
+
+    plt.figure(figsize = (15,30))
+    plt.imshow(density_map,cmap='turbo')
+    plt.savefig(os.path.join(output_dir,'density_map.png'))
+    np.save('density_map',density_map)
+    return 
 
 if __name__ == "__main__":
 
@@ -105,6 +114,7 @@ if __name__ == "__main__":
 
     config['bgremoved'] = args.bgremoved
     config['patch_visualization'] = args.patch_visualization
+    config['output_dir'] = output_dir
 
     parameter_names = ['level','patch_size','channel_nuclei','channel_epithelium']
     
@@ -113,15 +123,6 @@ if __name__ == "__main__":
             config[param_name] = params[param_name]
 
     extract_all_patches(args.wsi_path, args.nuclei_tiff_path, args.epithelium_tiff_path , config)
-
-
-
-
-
-
-
-
-# This should print: (1024, 1024, 3) uint8 255 1
 
 
 

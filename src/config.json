@@ -2,5 +2,6 @@
     "level" : 0,
     "patch_size" : 1024,
     "channel_nuclei" : 2,
-    "channel_epithelium" : 1
+    "channel_epithelium" : 1,
+    "patch_size_preprocessing" : 512
 }
