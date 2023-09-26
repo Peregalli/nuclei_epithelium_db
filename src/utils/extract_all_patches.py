@@ -88,7 +88,7 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
     plt.figure(figsize = (15,30))
     plt.imshow(density_map,cmap='turbo')
     plt.savefig(os.path.join(output_dir,'density_map.png'))
-    np.save('density_map',density_map)
+    np.save(os.path.join(output_dir,'density_map'),density_map)
     return 
 
 if __name__ == "__main__":
