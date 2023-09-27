@@ -16,9 +16,10 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str)
 
     #Hyperparameters
     patchSize = 512
-    magnification = 10
+    magnification = 20
     overlapPercent = 0.3
-    scaleFactor=1.0
+    scaleFactor=1/255
+    #output = fast.NeuralNetworkNode(name = 'Conv2d-76',shape = fast.TensorShape((-1,1,512,512)))
 
     importer = fast.WholeSlideImageImporter.create(wsi_path)
 
@@ -32,7 +33,7 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str)
                                                         .connect(1, tissueSegmentation)
 
     # Create neural network object ###
-    nn = fast.NeuralNetwork.create(scaleFactor=scaleFactor,
+    nn = fast.SegmentationNetwork.create(scaleFactor=scaleFactor,
                                    modelFilename=model_path).connect(0, patchGenerator)
 
     HoleFilterProcess = HoleFillFilterPO.create(epithelium_threshold = 0.2,
