@@ -6,6 +6,7 @@ import os
 from tqdm import tqdm
 import argparse
 import json
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 parser = argparse.ArgumentParser(description='Extract patches from WSI and segmentation masks')
 parser.add_argument('-w', '--wsi_path', help="path to wsi file", type=str)
@@ -58,7 +59,7 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
     access_1 = get_access_to_tiff(tiff_path= TIFF_path_1, level= config['level'])
     access_2 = get_access_to_tiff(tiff_path= TIFF_path_2, level= config['level'])
 
-    density_map = np.zeros((H//config['patch_size'], W//config['patch_size']))
+    density_map = np.zeros((H//config['patch_size'], W//config['patch_size'],3))
 
     for y in tqdm(range(0,H-config['patch_size'],config['patch_size'])):
         for x in range(0,W-config['patch_size'],config['patch_size']):
@@ -73,8 +74,9 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
             mask = np.zeros((config['patch_size'],config['patch_size'],3))
             mask[:,:,config['channel_nuclei']] = get_mask_from_access(access_1, x, y, W, H, config['patch_size'])
             mask[:,:,config['channel_epithelium']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'])
-            density_map[y//config['patch_size'],x//config['patch_size']] = np.sum(mask[:,:,config['channel_epithelium']]>0)/(config['patch_size']*config['patch_size'])
-
+    
+            density_map[y//config['patch_size'],x//config['patch_size'],config['channel_epithelium']] = np.sum(mask[:,:,config['channel_epithelium']]>0)/(config['patch_size']*config['patch_size'])
+            density_map[y//config['patch_size'],x//config['patch_size'],-1] = 1
             cv.imwrite(os.path.join(config['output_dir'],'masks',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),mask)
             cv.imwrite(os.path.join(config['output_dir'],'patches',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),wsi_image[:,:,::-1])
 
@@ -84,9 +86,17 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
                 level = config['level']
                 plt.savefig(os.path.join(config['output_dir'],f'image_{level}_{y}_{x}.png'))
 
-
+    #Draw density map
+    #TODO: Do the same but with nuclei
     plt.figure(figsize = (15,30))
-    plt.imshow(density_map,cmap='turbo')
+    plt.title(output_dir + ' Densitiy Map', fontsize = 30)
+    ax = plt.subplot()
+    im = ax.imshow(density_map[:,:,config['channel_epithelium']],cmap='turbo')
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = plt.colorbar(im, cax=cax)
+    cbar.ax.tick_params(labelsize=18)
+    
     plt.savefig(os.path.join(output_dir,'density_map.png'))
     np.save(os.path.join(output_dir,'density_map'),density_map)
     return 
