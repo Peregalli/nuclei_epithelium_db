@@ -22,7 +22,7 @@ class HoleFillFilterPO(fast.PythonProcessObject):
         epithelium_prediction = self.getInputData(0)
 
         #Mask
-        epithelium_mask = ((np.asarray(epithelium_prediction)[...,1]>self.threshold)*255).astype(np.uint8)
+        epithelium_mask = ((np.asarray(epithelium_prediction)>self.threshold)*255).astype(np.uint8)
 
         #Postprocesing prediction
         epithelium_mask_fill = self.epithelium_fill_filter.apply(epithelium_mask)
