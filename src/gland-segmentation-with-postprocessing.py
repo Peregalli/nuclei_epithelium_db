@@ -16,8 +16,8 @@ def gland_segmentation_wsi(wsi_path : str , model_path : str, output : str):
 
     #Hyperparameters
     patchSize = 512
-    magnification = 20
-    overlapPercent = .0
+    magnification = 10
+    overlapPercent = .3
     scaleFactor=1/255
 
     importer = fast.WholeSlideImageImporter.create(wsi_path)
