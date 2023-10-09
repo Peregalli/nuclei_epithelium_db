@@ -13,7 +13,7 @@ parser.add_argument('-w', '--wsi_path', help="path to wsi file", type=str)
 parser.add_argument('-n', '--nuclei_tiff_path',help = 'generate this file with nuclei-segmentation.py', type=str)
 parser.add_argument('-e', '--epithelium_tiff_path',help = 'generate this file with colon-epithelium-segmentation-with-postprocessing.py', type=str)
 parser.add_argument('-o', '--output_dir', type = str, default = None)
-parser.add_argument('-v', '--patch_visualization', help = 'save a visualization with image patches and mask.\\ Warning : This could take some time', type = bool, default = False)
+parser.add_argument('-v', '--patch_visualization', help = 'save a visualization with image patches and mask.\\ Warning : This could take some time', action ="store_true", default = False)
 parser.add_argument('-b', '--bgremoved', help = 'If true skips bground patches', action="store_true")
 
 def get_access_to_tiff(tiff_path : str, level : int) -> tuple:
@@ -74,17 +74,20 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
             mask = np.zeros((config['patch_size'],config['patch_size'],3))
             mask[:,:,config['channel_nuclei']] = get_mask_from_access(access_1, x, y, W, H, config['patch_size'])
             mask[:,:,config['channel_epithelium']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'])
-    
-            density_map[y//config['patch_size'],x//config['patch_size'],config['channel_epithelium']] = np.sum(mask[:,:,config['channel_epithelium']]>0)/(config['patch_size']*config['patch_size'])
+
+            glands_density = np.sum(mask[:,:,config['channel_epithelium']]>0)/(config['patch_size']*config['patch_size'])
+            density_map[y//config['patch_size'],x//config['patch_size'],config['channel_epithelium']] = glands_density
             density_map[y//config['patch_size'],x//config['patch_size'],-1] = 1
             cv.imwrite(os.path.join(config['output_dir'],'masks',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),mask)
             cv.imwrite(os.path.join(config['output_dir'],'patches',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),wsi_image[:,:,::-1])
 
             if config['patch_visualization']:
+                plt.figure(figsize = (8,8))
                 plt.imshow(wsi_image)
-                plt.imshow(mask,alpha = 0.3)
+                plt.imshow(mask,alpha = 0.3,cmap = 'gray')
                 level = config['level']
                 plt.savefig(os.path.join(config['output_dir'],f'image_{level}_{y}_{x}.png'))
+                plt.show()
 
     #Draw density map
     #TODO: Do the same but with nuclei

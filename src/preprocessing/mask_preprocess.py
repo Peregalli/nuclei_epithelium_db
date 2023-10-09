@@ -34,7 +34,8 @@ def main():
     fn_path = os.listdir(PATH_TO_MASKS)
 
     #Define filters
-    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_epithelium'])     
+    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_epithelium']) 
+    contour_remover_filter = ContourEpitheliumRemoverFilter()                            
 
     for fn in tqdm(fn_path):
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn))
@@ -47,7 +48,7 @@ def main():
 
         #Apply filters
         mask_reshaped = nuclei_cleaning_filter.apply(mask_reshaped)
-        
+        mask_reshaped[:,:,config["channel_epithelium"]] = contour_remover_filter.apply(image_reshaped,mask_reshaped[:,:,config["channel_epithelium"]])
         new_mask = (cv.resize(mask_reshaped, (mask.shape[0],mask.shape[1]), interpolation = cv.INTER_CUBIC)).astype(np.uint8) 
         
         cv.imwrite(os.path.join(DEST_FOLDER,fn),new_mask)
