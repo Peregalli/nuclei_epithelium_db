@@ -35,7 +35,7 @@ def main():
 
     #Define filters
     nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_epithelium'])     
-    contour_epithelium_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*config['parch_size_preprocessing']), watershed_min_distance= int(0.1*config['parch_size_preprocessing']))
+    contour_epithelium_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*config['patch_size_preprocessing']), watershed_min_distance= int(0.1*config['patch_size_preprocessing']))
 
     for fn in tqdm(fn_path):
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn))
@@ -43,8 +43,8 @@ def main():
 
         #Resize image and mask
         
-        image_reshaped = cv.resize(image.copy(), (config['parch_size_preprocessing'],config['parch_size_preprocessing']), interpolation = cv.INTER_CUBIC)
-        mask_reshaped = ((cv.resize(mask.copy(), (config['parch_size_preprocessing'],config['parch_size_preprocessing']), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
+        image_reshaped = cv.resize(image.copy(), (config['patch_size_preprocessing'],config['patch_size_preprocessing']), interpolation = cv.INTER_CUBIC)
+        mask_reshaped = ((cv.resize(mask.copy(), (config['patch_size_preprocessing'],config['patch_size_preprocessing']), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
 
         #Apply filters
         mask_reshaped = nuclei_cleaning_filter.apply(mask_reshaped)
