@@ -37,7 +37,7 @@ def main():
 
     #Define filters
     nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_epithelium']) 
-    contour_remover_filter = ContourEpitheliumRemoverFilter()     
+    contour_remover_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*config['patch_size_preprocessing']), watershed_min_distance= int(0.1*config['patch_size_preprocessing']))
 
     density_map = np.zeros((config['wsi_height']//config['patch_size'], config['wsi_width']//config['patch_size'],3))                       
 
