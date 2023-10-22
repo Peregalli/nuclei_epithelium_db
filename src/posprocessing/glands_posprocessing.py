@@ -5,7 +5,7 @@ import json
 import pandas as pd
 from tqdm import tqdm 
 
-class GlandsAreaPosprocessing():
+class Posprocessing():
     def __init__(self,nuclei_channel,epithelium_channel):
         self.nuclei_channel = nuclei_channel 
         self.epithelium_channel = epithelium_channel
@@ -19,7 +19,7 @@ class GlandsAreaPosprocessing():
         return mask
 
 def main():
-    PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_glands'
+    PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
     PATH_TO_MASKS = os.path.join(PATH_TO_FOLDER,'new_masks')
     PATH_TO_PATCHES = os.path.join(PATH_TO_FOLDER,'patches')
     

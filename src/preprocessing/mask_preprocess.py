@@ -3,11 +3,12 @@ import cv2 as cv
 import os
 from preprocessing.NucleiCleaningFilter import NucleiCleaningFilter
 from preprocessing.ContourEpitheliumRemoverFilter import ContourEpitheliumRemoverFilter
+from utils.plot_utils import density_color_map_plot
 import argparse
 from tqdm import tqdm
 import json
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 parser = argparse.ArgumentParser(description='Preprocessing of nuclei and glands masks')
 parser.add_argument('-s', '--src_folder', help="Root to patches and original mask folder. Both masks and folder must be in the same folder", type=str)
@@ -69,27 +70,8 @@ def main():
 
         cv.imwrite(os.path.join(DEST_FOLDER,fn),new_mask)
 
-    plt.figure(figsize = (30,30))
-    plt.suptitle(os.path.basename(args.src_folder), fontsize = 40)
-    
-    ax = plt.subplot(121)
-    ax.set_title('Glands Densitiy Map', fontsize = 30)
-    im = ax.imshow(density_map[:,:,0],cmap='turbo')
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.ax.tick_params(labelsize=18)
-
-    ax = plt.subplot(122)
-    ax.set_title('Nuclei Densitiy Map', fontsize = 30)
-    im = ax.imshow(density_map[:,:,1],cmap='turbo')
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.ax.tick_params(labelsize=18)
-    
-    plt.savefig(os.path.join(args.src_folder,'density_map.png'))
     np.save(os.path.join(args.src_folder,'density_map'),density_map)
+    density_color_map_plot(density_map, gland_channel = 0, nuclei_channel = 1, title  = os.path.split(args.src_folder)[-1], dst_folder = args.src_folder)
     print('Preprocessing finished')
 
 if __name__ == "__main__":
