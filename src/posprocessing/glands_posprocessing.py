@@ -19,7 +19,7 @@ class Posprocessing():
         return mask
 
 def main():
-    PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
+    PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/44-D5_glands'
     PATH_TO_MASKS = os.path.join(PATH_TO_FOLDER,'new_masks')
     PATH_TO_PATCHES = os.path.join(PATH_TO_FOLDER,'patches')
     
@@ -32,18 +32,24 @@ def main():
     df = pd.DataFrame(columns=['gland_id', 'patch_loc', 'patch_gland_ind', 'relative_area'])
     df = df.set_index('gland_id')
     gland_id = 0
+    TRESH_AREA = 0.005
 
     # Open mask
     for mask_fn in tqdm(os.listdir(PATH_TO_MASKS)):
 
-        mask = cv.imread(os.path.join(PATH_TO_MASKS,mask_fn))[:,:,channel_glands]
+        mask_ori = cv.imread(os.path.join(PATH_TO_MASKS,mask_fn))
+        mask = mask_ori[:,:,channel_glands]
         patch_loc = (mask_fn.split('.')[0]).split('_')[-2:]
         # Separate in instances
         num_labels, glands_instances, stats, centroids = cv.connectedComponentsWithStats(mask)
         for i in range(1,num_labels):
             relative_area = np.sum(glands_instances == i)/(params['patch_size']*params['patch_size'])
-            df.loc[gland_id] = {'patch_loc': patch_loc[0]+'_'+patch_loc[1],'patch_gland_ind' : i, 'relative_area' : relative_area}
-            gland_id += 1 
+            if relative_area > TRESH_AREA:
+                df.loc[gland_id] = {'patch_loc': patch_loc[0]+'_'+patch_loc[1],'patch_gland_ind' : i, 'relative_area' : relative_area}
+                gland_id += 1 
+        
+        mask_ori[:,:,channel_glands] = glands_instances
+        cv.imwrite(os.path.join(PATH_TO_MASKS,mask_fn), mask)
     
     df.to_csv(os.path.join(PATH_TO_FOLDER,'glands_report.csv'))
 if __name__ == "__main__":
