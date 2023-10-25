@@ -32,7 +32,7 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str)
                                                         .connect(1, tissueSegmentation)
 
     # Create neural network object ###
-    nn = fast.NeuralNetwork.create(scaleFactor=scaleFactor,
+    nn = fast.SegmentationNetwork.create(scaleFactor=scaleFactor,
                                    modelFilename=model_path).connect(0, patchGenerator)
 
     HoleFilterProcess = HoleFillFilterPO.create(epithelium_threshold = 0.2,

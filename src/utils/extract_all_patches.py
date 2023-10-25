@@ -6,12 +6,13 @@ import os
 from tqdm import tqdm
 import argparse
 import json
+import warnings
 
-
+warnings.filterwarnings("ignore", module="TIFF")
 parser = argparse.ArgumentParser(description='Extract patches from WSI and segmentation masks')
 parser.add_argument('-w', '--wsi_path', help="path to wsi file", type=str)
 parser.add_argument('-n', '--nuclei_tiff_path',help = 'generate this file with nuclei-segmentation.py', type=str)
-parser.add_argument('-e', '--epithelium_tiff_path',help = 'generate this file with colon-epithelium-segmentation-with-postprocessing.py', type=str)
+parser.add_argument('-e', '--epithelium_tiff_path',help = 'generate this file with colon-epithelium-segmentation-with-postprocessing.py or gland-segmentation-with-postprocessing.py', type=str)
 parser.add_argument('-o', '--output_dir', type = str, default = None)
 parser.add_argument('-v', '--patch_visualization', help = 'save a visualization with image patches and mask.\\ Warning : This could take some time', action ="store_true", default = False)
 parser.add_argument('-b', '--bgremoved', help = 'If true skips bground patches', action="store_true")
@@ -43,6 +44,14 @@ def get_mask_from_access(access: tuple, x : int, y : int, W: int, H:int, patch_s
     mask = cv.resize(mask,(patch_size,patch_size))
 
     return mask 
+
+def get_model_type_from_path(epithelium_tiff_path : str) -> str:
+    if 'colon_epithelium_tiffs' == os.path.basename(os.path.dirname(args.epithelium_tiff_path)):
+        return 'epithelium'
+    elif 'gland_tiffs' == os.path.basename(os.path.dirname(args.epithelium_tiff_path)): 
+        return 'glands'
+    else :
+        raise ValueError('Wrong path to epithelium tiff')
 
 def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, config : dict):
     
@@ -96,8 +105,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Load the configuration from the JSON file
+    with open('src/config.json', 'r') as config_file:
+        params = json.load(config_file)
+
+    # Create a dictionary to hold the imported parameters
+    config = {}
+    config['wsi_name'] = os.path.basename(args.wsi_path).split('.')[0]
+    config['glands_model_type'] = get_model_type_from_path(args.epithelium_tiff_path)
+
     if args.output_dir is None :
-        output_dir = os.path.basename(args.wsi_path).split('.')[0]
+        output_dir = os.path.basename(args.wsi_path).split('.')[0] + '_' + config['glands_model_type']
     else :
         output_dir = args.output_dir
 
@@ -105,13 +123,6 @@ if __name__ == "__main__":
         os.mkdir(output_dir)
         os.mkdir(os.path.join(output_dir,'patches'))
         os.mkdir(os.path.join(output_dir,'masks'))
-
-    # Load the configuration from the JSON file
-    with open('src/config.json', 'r') as config_file:
-        params = json.load(config_file)
-
-    # Create a dictionary to hold the imported parameters
-    config = {}
 
     config['bgremoved'] = args.bgremoved
     config['patch_visualization'] = args.patch_visualization
