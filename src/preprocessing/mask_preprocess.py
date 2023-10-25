@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 import os
+import sys
+sys.path.append('src/')
 from preprocessing.NucleiCleaningFilter import NucleiCleaningFilter
 from preprocessing.ContourEpitheliumRemoverFilter import ContourEpitheliumRemoverFilter
 from utils.plot_utils import density_color_map_plot
@@ -15,15 +17,14 @@ parser.add_argument('-s', '--src_folder', help="Root to patches and original mas
 parser.add_argument('-n', '--new_folder', help="new mask destination folder ", default= 'new_masks', type=str)
 
 
-def main():
-    args = parser.parse_args()
+def mask_preprocessing(src_folder : str, new_folder : str = None):
 
-    with open(os.path.join(args.src_folder,'report.json'), 'r') as config_file:
+    with open(os.path.join(src_folder,'report.json'), 'r') as config_file:
         config = json.load(config_file)
 
-    PATH_TO_MASKS = os.path.join(args.src_folder,'masks')
-    PATH_TO_IMAGE = os.path.join(args.src_folder,'patches')
-    NEW_FOLDER = args.new_folder
+    PATH_TO_MASKS = os.path.join(src_folder,'masks')
+    PATH_TO_IMAGE = os.path.join(src_folder,'patches')       
+    NEW_FOLDER = new_folder
 
     if NEW_FOLDER is None:
         #Replace mask into source folder
@@ -70,9 +71,11 @@ def main():
 
         cv.imwrite(os.path.join(DEST_FOLDER,fn),new_mask)
 
-    np.save(os.path.join(args.src_folder,'density_map'),density_map)
-    density_color_map_plot(density_map, gland_channel = 0, nuclei_channel = 1, title  = os.path.split(args.src_folder)[-1], dst_folder = args.src_folder)
+    np.save(os.path.join(src_folder,'density_map'),density_map)
+    density_color_map_plot(density_map, gland_channel = 0, nuclei_channel = 1, title  = os.path.split(src_folder)[-1], dst_folder = src_folder)
     print('Preprocessing finished')
 
 if __name__ == "__main__":
-    main()
+    args = parser.parse_args()
+
+    mask_preprocessing(args.src_folder, args.new_folder)

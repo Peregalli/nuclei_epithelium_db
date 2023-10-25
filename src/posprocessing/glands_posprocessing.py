@@ -1,4 +1,6 @@
 import numpy as np
+import sys
+sys.path.append('src/')
 import cv2 as cv
 import os
 import json
@@ -63,18 +65,18 @@ class GlandsPosprocessing():
         plot_glands_histogram_comparison(self.glands_data, glands_posprocessing_to_compare.glands_data, wsi_name,wsi_name_to_compare, self.min_relative_area)
 
 def main():
-    PATH_TO_FOLDER_1 = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/44-D5_glands'
+    PATH_TO_FOLDER_1 = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
     PATH_TO_FOLDER_2 = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/44-D5_epithelium'   
 
     glands_posprocessing_1 = GlandsPosprocessing(PATH_TO_FOLDER_1)
     glands_posprocessing_1.extract_features()
     glands_posprocessing_1.plot_results()
 
-    glands_posprocessing_2 = GlandsPosprocessing(PATH_TO_FOLDER_2)
-    glands_posprocessing_2.extract_features()
-    glands_posprocessing_2.plot_results()
+    #glands_posprocessing_2 = GlandsPosprocessing(PATH_TO_FOLDER_2)
+    #glands_posprocessing_2.extract_features()
+    #glands_posprocessing_2.plot_results()
 
-    glands_posprocessing_2.compare_with(glands_posprocessing_1)
+    #glands_posprocessing_2.compare_with(glands_posprocessing_1)
 
 if __name__ == "__main__":
     main()

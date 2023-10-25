@@ -1,6 +1,8 @@
 import fast
 import numpy as np
 import os
+import sys
+sys.path.append('src/')
 from preprocessing.HoleFillFilterPO import HoleFillFilterPO
 import argparse
 
@@ -10,7 +12,7 @@ parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'colon_epithelium_tiffs', type=str)
 
 
-def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str):
+def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str = None):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
@@ -56,6 +58,9 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str)
     finished = fast.RunUntilFinished.create()\
         .connect(stitcher)
 
+    if output is None:
+        output = os.path.join(os.getcwd(),'colon_epithelium_tiffs')
+        
     if not os.path.exists(output):
         os.mkdir(output)
 

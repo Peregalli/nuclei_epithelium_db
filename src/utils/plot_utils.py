@@ -9,7 +9,7 @@ import pandas as pd
 
 def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei_channel : int, title : str, dst_folder : str):
 
-    plt.figure(figsize = (30,30))
+    plt.figure(figsize = (20,20))
     plt.suptitle(os.path.basename(title), fontsize = 40)
     norm = Normalize(vmin=0, vmax=1)
     sm = ScalarMappable(cmap='turbo', norm=norm)
@@ -86,6 +86,31 @@ def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_
     
     plt.savefig(os.path.join(PATH_TO_FOLDER, f'Relative_area_per_gland_instance_{model}.png'))
     plt.show()
+    return
+
+def visualizate_masks(image : str, mask, cmap : str, save : bool = False, dst_folder : str = None, ax = None):
+    if ax is None:
+        fig, axs = plt.subplots(1, 1, figsize = (8, 8))
+    ax.imshow(image)
+    ax.imshow(mask,alpha = 0.5,cmap = cmap)
+    ax.axis('off')
+    if save:
+        plt.savefig(os.path.join(dst_folder,'mask_visualization.png'))
+    return ax
+
+def show_masks(list_of_fn : str, path_to_folder : str, cmap : str = 'gray', channel : int = 0, title : str = None):
+    path_to_images = os.path.join(path_to_folder,'patches')
+    if os.path.exists(os.path.join(path_to_folder,'new_masks')):
+        path_to_mask = os.path.join(path_to_folder,'new_masks')
+    else:
+        path_to_mask = os.path.join(path_to_folder,'masks')
+
+    fig, axs = plt.subplots(1, 5, figsize = (5*len(list_of_fn), 5))
+    fig.suptitle(title, fontsize = 20)
+    for i, fn in enumerate(list_of_fn):
+        image = cv.imread(os.path.join(path_to_images,fn))[:,:,::-1]
+        mask = cv.imread(os.path.join(path_to_mask,fn))[:,:,channel] > 0
+        axs[i] = visualizate_masks(image, mask, cmap = cmap, ax = axs[i])
     return
                
 def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, wsi_name_1 : str, wsi_name_2 : str, threshold_area : float = 0.005,
