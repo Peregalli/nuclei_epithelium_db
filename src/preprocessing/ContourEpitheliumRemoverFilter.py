@@ -94,7 +94,7 @@ def main():
         if not os.path.exists(DEST_FOLDER):
             os.mkdir(DEST_FOLDER)
 
-    CHANNEL_EPITHELIUM = 1
+    channel_glands = 1
     CHANNEL_NUCLEI = 2
     
     fn_path = os.listdir(PATH_TO_MASKS)
@@ -102,7 +102,7 @@ def main():
 
     for fn in fn_path:
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn))
-        epithelium_mask = ((mask[:,:,CHANNEL_EPITHELIUM] > 120)*255).astype(np.uint8)
+        epithelium_mask = ((mask[:,:,channel_glands] > 120)*255).astype(np.uint8)
         image = cv.imread(os.path.join(PATH_TO_IMAGE,fn))
 
         #Resize image and mask
@@ -113,7 +113,7 @@ def main():
         new_mask = contour_epithelium_filter.apply(image_reshaped,mask_reshaped)
 
         new_mask = cv.resize(new_mask.astype(np.uint8), (mask.shape[0],mask.shape[1]), interpolation = cv.INTER_CUBIC)  
-        mask[:,:,CHANNEL_EPITHELIUM] = new_mask
+        mask[:,:,channel_glands] = new_mask
         cv.imwrite(os.path.join(DEST_FOLDER,fn),mask)
 
 if __name__ == "__main__":

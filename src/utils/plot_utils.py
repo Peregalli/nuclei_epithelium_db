@@ -91,7 +91,7 @@ def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_
             PATH_TO_IMG = os.path.join(PATH_TO_FOLDER,'patches',mask_fn)
             df_patch = df[df.patch_loc == patch_loc]
             
-            gland_mask = cv.imread(PATH_TO_MASK)[:,:,config['channel_epithelium']]
+            gland_mask = cv.imread(PATH_TO_MASK)[:,:,config['channel_glands']]
             img = cv.imread(PATH_TO_IMG)[:,:,::-1]
             interes_glands = np.zeros((gland_mask.shape))
             for index in df_patch[(min_v < df_patch.relative_area)&(df_patch.relative_area < max_v)].patch_gland_ind:
@@ -188,7 +188,7 @@ def main():
     density_map = np.load(os.path.join(PATH_TO_FOLDER,'density_map.npy'))
     with open(os.path.join(PATH_TO_FOLDER,'report.json'), 'r') as config_file:
         config = json.load(config_file)
-    density_color_map_plot(density_map, gland_channel = config['channel_epithelium'], nuclei_channel = config['channel_nuclei'], 
+    density_color_map_plot(density_map, gland_channel = config['channel_glands'], nuclei_channel = config['channel_nuclei'], 
                            fibrosis_channel = config['channel_fibrosis'],title  = PATH_TO_FOLDER.split('/')[0], dst_folder = PATH_TO_FOLDER)
 
 if __name__ == "__main__":

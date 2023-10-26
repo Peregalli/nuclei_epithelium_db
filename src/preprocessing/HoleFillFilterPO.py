@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 class HoleFillFilterPO(fast.PythonProcessObject):
-    def __init__(self, epithelium_threshold,patchsize,channel_nuclei = 2,channel_epithelium = 1):
+    def __init__(self, epithelium_threshold,patchsize,channel_nuclei = 2,channel_glands = 1):
         super().__init__()
         self.createInputPort(0)
         self.createOutputPort(0)

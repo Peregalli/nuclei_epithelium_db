@@ -88,7 +88,7 @@ def extract_all_patches(WSI_path : str, config : dict, TIFF_path_1 : str, TIFF_p
 
             mask = np.zeros((config['patch_size'],config['patch_size'],3))
             mask[:,:,config['channel_nuclei']] = get_mask_from_access(access_1, x, y, W, H, config['patch_size'], level = config['level'])
-            mask[:,:,config['channel_epithelium']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'], level = config['level'])
+            mask[:,:,config['channel_glands']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'], level = config['level'])
             if TIFF_path_3 is not None:
                 mask[:,:,config['channel_fibrosis']] = get_mask_from_access(access_3, x, y, W, H, config['patch_size'], level = config['level'])
 

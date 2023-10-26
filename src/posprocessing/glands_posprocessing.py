@@ -26,7 +26,7 @@ class GlandsPosprocessing():
         df = pd.DataFrame(columns=['gland_id', 'patch_loc', 'patch_gland_ind', 'relative_area'])
         df = df.set_index('gland_id')
         gland_id = 0
-        channel_glands = self.params['channel_epithelium']
+        channel_glands = self.params['channel_glands']
 
         # Open mask
         for mask_fn in tqdm(os.listdir(self.path_to_masks)):

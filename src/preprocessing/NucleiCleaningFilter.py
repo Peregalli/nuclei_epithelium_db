@@ -44,11 +44,11 @@ def main():
         if not os.path.exists(DEST_FOLDER):
             os.mkdir(DEST_FOLDER)
 
-    CHANNEL_EPITHELIUM = 1
+    channel_glands = 1
     CHANNEL_NUCLEI = 2
     
     fn_path = os.listdir(PATH_TO_MASKS)
-    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=CHANNEL_NUCLEI, epithelium_channel= CHANNEL_EPITHELIUM)
+    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=CHANNEL_NUCLEI, epithelium_channel= channel_glands)
 
     for fn in fn_path:
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn))  

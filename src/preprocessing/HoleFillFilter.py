@@ -59,7 +59,7 @@ def main():
         if not os.path.exists(DEST_FOLDER):
             os.mkdir(DEST_FOLDER)
 
-    CHANNEL_EPITHELIUM = 1
+    channel_glands = 1
     CHANNEL_NUCLEI = 2
     SIZE = 256 
     
@@ -68,7 +68,7 @@ def main():
 
     for fn in fn_path:
         mask = cv.imread(os.path.join(PATH_TO_MASKS,fn)) 
-        epithelium_mask = ((mask[:,:,CHANNEL_EPITHELIUM] > 120)*255).astype(np.uint8)
+        epithelium_mask = ((mask[:,:,channel_glands] > 120)*255).astype(np.uint8)
 
         #Reshape mask and thresholding
         mask_resized = ((cv.resize(epithelium_mask.copy(), (SIZE,SIZE), interpolation = cv.INTER_CUBIC) > 120)*255).astype(np.uint8)
@@ -77,7 +77,7 @@ def main():
         mask_fill = epithelium_fill_filter.apply(mask_resized)
         #Resize mask to original size
         im_out = ((cv.resize(mask_fill.copy(), (epithelium_mask.shape[0],epithelium_mask.shape[1]), interpolation= cv.INTER_CUBIC) > 180)*255).astype(np.uint8)
-        mask[:,:,CHANNEL_EPITHELIUM] = im_out
+        mask[:,:,channel_glands] = im_out
         cv.imwrite(os.path.join(DEST_FOLDER,fn),mask)
 
 if __name__ == "__main__":

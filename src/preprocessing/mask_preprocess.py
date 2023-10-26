@@ -38,7 +38,7 @@ def mask_preprocessing(src_folder : str, new_folder : str = None):
     fn_path = os.listdir(PATH_TO_MASKS)
 
     #Define filters
-    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_epithelium']) 
+    nuclei_cleaning_filter = NucleiCleaningFilter(nuclei_channel=config['channel_nuclei'], epithelium_channel= config['channel_glands']) 
     contour_remover_filter = ContourEpitheliumRemoverFilter(kernel_size_erode = int(0.02*config['patch_size_preprocessing']), watershed_min_distance= int(0.1*config['patch_size_preprocessing']))
 
     density_map = np.zeros((config['wsi_height']//config['patch_size'], config['wsi_width']//config['patch_size'],4))                       
@@ -54,7 +54,7 @@ def mask_preprocessing(src_folder : str, new_folder : str = None):
 
         #Apply filters
         mask_reshaped = nuclei_cleaning_filter.apply(mask_reshaped)
-        mask_reshaped[:,:,config["channel_epithelium"]] = contour_remover_filter.apply(image_reshaped,mask_reshaped[:,:,config["channel_epithelium"]])
+        mask_reshaped[:,:,config["channel_glands"]] = contour_remover_filter.apply(image_reshaped,mask_reshaped[:,:,config["channel_glands"]])
         new_mask = (cv.resize(mask_reshaped, (mask.shape[0],mask.shape[1]), interpolation = cv.INTER_CUBIC)).astype(np.uint8) 
         
         #Save density map
@@ -62,21 +62,21 @@ def mask_preprocessing(src_folder : str, new_folder : str = None):
         y = int(y)
         x = int(x)
 
-        glands_density = np.sum(new_mask[:,:,config['channel_epithelium']]>0)/(new_mask.shape[0]*new_mask.shape[1])
+        glands_density = np.sum(new_mask[:,:,config['channel_glands']]>0)/(new_mask.shape[0]*new_mask.shape[1])
         nuclei_density = np.sum(new_mask[:,:,config['channel_nuclei']]>0)/(new_mask.shape[0]*new_mask.shape[1])
         
         if config['channel_fibrosis'] is not None:
             fibrosis_density = np.sum(new_mask[:,:,config['channel_fibrosis']]>0)/(new_mask.shape[0]*new_mask.shape[1])
             density_map[y//config['patch_size'],x//config['patch_size'],config['channel_fibrosis']] = fibrosis_density
         
-        density_map[y//config['patch_size'],x//config['patch_size'],config['channel_epithelium']] = glands_density
+        density_map[y//config['patch_size'],x//config['patch_size'],config['channel_glands']] = glands_density
         density_map[y//config['patch_size'],x//config['patch_size'],config['channel_nuclei']] = nuclei_density
         density_map[y//config['patch_size'],x//config['patch_size'],3] = 1
 
         cv.imwrite(os.path.join(DEST_FOLDER,fn),new_mask)
 
     np.save(os.path.join(src_folder,'density_map'),density_map)
-    density_color_map_plot(density_map, gland_channel = config['channel_epithelium'], nuclei_channel = config['channel_nuclei'], 
+    density_color_map_plot(density_map, gland_channel = config['channel_glands'], nuclei_channel = config['channel_nuclei'], 
                            fibrosis_channel= config['channel_fibrosis'], title  = os.path.split(src_folder)[-1], dst_folder = src_folder)
     print('Preprocessing finished')
 
