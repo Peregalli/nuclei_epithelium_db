@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='Extract patches from WSI and segme
 parser.add_argument('-w', '--wsi_path', help="path to wsi file", type=str)
 parser.add_argument('-n', '--nuclei_tiff_path',help = 'generate this file with nuclei-segmentation.py', type=str)
 parser.add_argument('-e', '--epithelium_tiff_path',help = 'generate this file with colon-epithelium-segmentation-with-postprocessing.py or gland-segmentation-with-postprocessing.py', type=str)
+parser.add_argument('-f', '--fibrosis_tiff_path',help = 'generate this file with fibrosis_segmentation.py', type=str)
 parser.add_argument('-o', '--output_dir', type = str, default = None)
 parser.add_argument('-v', '--patch_visualization', help = 'save a visualization with image patches and mask.\\ Warning : This could take some time', action ="store_true", default = False)
 parser.add_argument('-b', '--bgremoved', help = 'If true skips bground patches', action="store_true")
@@ -53,7 +54,7 @@ def get_model_type_from_path(epithelium_tiff_path : str) -> str:
     else :
         raise ValueError('Wrong path to epithelium tiff')
 
-def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, config : dict):
+def extract_all_patches(WSI_path : str, config : dict, TIFF_path_1 : str, TIFF_path_2 : str,TIFF_path_3 : str = None):
     
     # Run importer and get data
     wsi_pyramid_image = fast.fast.TIFFImagePyramidImporter\
@@ -70,6 +71,10 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
 
     access_1 = get_access_to_tiff(tiff_path= TIFF_path_1, level= config['level'])
     access_2 = get_access_to_tiff(tiff_path= TIFF_path_2, level= config['level'])
+    if TIFF_path_3 is not None:
+        access_3 = get_access_to_tiff(tiff_path= TIFF_path_3, level= config['level'])
+    else:
+        config['channel_fibrosis'] = None
 
     for y in tqdm(range(0,H-config['patch_size'],config['patch_size'])):
         for x in range(0,W-config['patch_size'],config['patch_size']):
@@ -84,6 +89,8 @@ def extract_all_patches(WSI_path : str, TIFF_path_1 : str, TIFF_path_2 : str, co
             mask = np.zeros((config['patch_size'],config['patch_size'],3))
             mask[:,:,config['channel_nuclei']] = get_mask_from_access(access_1, x, y, W, H, config['patch_size'], level = config['level'])
             mask[:,:,config['channel_epithelium']] = get_mask_from_access(access_2, x, y, W, H, config['patch_size'], level = config['level'])
+            if TIFF_path_3 is not None:
+                mask[:,:,config['channel_fibrosis']] = get_mask_from_access(access_3, x, y, W, H, config['patch_size'], level = config['level'])
 
             cv.imwrite(os.path.join(config['output_dir'],'masks',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),mask)
             cv.imwrite(os.path.join(config['output_dir'],'patches',f"{config['output_dir']}_{config['level']}_{y}_{x}.png"),wsi_image[:,:,::-1])
@@ -137,7 +144,7 @@ if __name__ == "__main__":
     for key in params.keys():
         config[key] = params[key]
 
-    extract_all_patches(args.wsi_path, args.nuclei_tiff_path, args.epithelium_tiff_path , config)
+    extract_all_patches(args.wsi_path, config, args.nuclei_tiff_path, args.epithelium_tiff_path, args.fibrosis_tiff_path )
 
 
 

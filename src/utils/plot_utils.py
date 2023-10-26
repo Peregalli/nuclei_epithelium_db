@@ -5,17 +5,28 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 import cv2 as cv
+import json
 import pandas as pd
 
-def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei_channel : int, title : str, dst_folder : str):
+def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei_channel : int, fibrosis_channel : int, title : str, dst_folder : str):
 
-    plt.figure(figsize = (20,20))
+    if fibrosis_channel is None:
+        gland_indx = 121
+        nuclei_indx = 122
+        classes = 2
+    else:
+        gland_indx = 131
+        nuclei_indx = 132
+        fibrosis_indx = 133
+        classes = 3
+
+    plt.figure(figsize = (10*classes,10))
     plt.suptitle(os.path.basename(title), fontsize = 40)
     norm = Normalize(vmin=0, vmax=1)
     sm = ScalarMappable(cmap='turbo', norm=norm)
     sm.set_array([])
 
-    ax = plt.subplot(121)
+    ax = plt.subplot(gland_indx)
     ax.set_title('Glands Densitiy Map', fontsize = 30)
     im = ax.imshow(density_map[:,:,gland_channel],cmap ='turbo', norm = norm)
     divider = make_axes_locatable(ax)
@@ -24,7 +35,7 @@ def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei
     cbar.ax.tick_params(labelsize=24)
     ax.axis('off')
 
-    ax = plt.subplot(122)
+    ax = plt.subplot(nuclei_indx)
     norm = Normalize(vmin=0, vmax= round(np.max(density_map[:,:,nuclei_channel]), 1))
     sm = ScalarMappable(cmap='turbo', norm=norm)
     sm.set_array([])
@@ -35,6 +46,19 @@ def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei
     cbar = plt.colorbar(sm, cax=cax)
     cbar.ax.tick_params(labelsize=24)
     ax.axis('off')
+
+    if fibrosis_channel is not None:
+        ax = plt.subplot(fibrosis_indx)
+        norm = Normalize(vmin=0, vmax= round(np.max(density_map[:,:,fibrosis_channel]), 1))
+        sm = ScalarMappable(cmap='turbo', norm=norm)
+        sm.set_array([])
+        ax.set_title('Fibrosis Densitiy Map', fontsize = 30)
+        im = ax.imshow(density_map[:,:,fibrosis_channel],cmap='turbo', norm = norm)
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        cbar = plt.colorbar(sm, cax=cax)
+        cbar.ax.tick_params(labelsize=24)
+        ax.axis('off')
     
     plt.savefig(os.path.join(dst_folder,'density_map.png'))
     return
@@ -123,8 +147,8 @@ def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, w
     c_glands = 'blue'
 
     plt.figure(figsize = (25,10))
-    plt.hist(df_2.relative_area, bins=50, color = c_epith, alpha = 0.6, label = f'{wsi_name_1}')
-    plt.hist(df_1.relative_area, bins=50, color = c_glands, alpha = 0.6, label = f'{wsi_name_2}')
+    plt.hist(df_2.relative_area, bins=50, color = c_epith, alpha = 0.6, label = f'{wsi_name_2}')
+    plt.hist(df_1.relative_area, bins=50, color = c_glands, alpha = 0.6, label = f'{wsi_name_1}')
     plt.yscale('log')
     plt.xticks(fontsize=15)  # Change the font size as needed
     plt.yticks(fontsize=15)
@@ -162,7 +186,10 @@ def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_are
 def main():
     PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
     density_map = np.load(os.path.join(PATH_TO_FOLDER,'density_map.npy'))
-    density_color_map_plot(density_map, gland_channel = 0, nuclei_channel = 1, title  = PATH_TO_FOLDER.split('/')[0], dst_folder = PATH_TO_FOLDER)
+    with open(os.path.join(PATH_TO_FOLDER,'report.json'), 'r') as config_file:
+        config = json.load(config_file)
+    density_color_map_plot(density_map, gland_channel = config['channel_epithelium'], nuclei_channel = config['channel_nuclei'], 
+                           fibrosis_channel = config['channel_fibrosis'],title  = PATH_TO_FOLDER.split('/')[0], dst_folder = PATH_TO_FOLDER)
 
 if __name__ == "__main__":
     main()
