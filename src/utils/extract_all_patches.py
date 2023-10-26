@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Extract patches from WSI and segme
 parser.add_argument('-w', '--wsi_path', help="path to wsi file", type=str)
 parser.add_argument('-n', '--nuclei_tiff_path',help = 'generate this file with nuclei-segmentation.py', type=str)
 parser.add_argument('-e', '--epithelium_tiff_path',help = 'generate this file with colon-epithelium-segmentation-with-postprocessing.py or gland-segmentation-with-postprocessing.py', type=str)
-parser.add_argument('-f', '--fibrosis_tiff_path',help = 'generate this file with fibrosis_segmentation.py', type=str)
+parser.add_argument('-f', '--fibrosis_tiff_path',help = 'generate this file with fibrosis_segmentation.py', type=str, default= None)
 parser.add_argument('-o', '--output_dir', type = str, default = None)
 parser.add_argument('-v', '--patch_visualization', help = 'save a visualization with image patches and mask.\\ Warning : This could take some time', action ="store_true", default = False)
 parser.add_argument('-b', '--bgremoved', help = 'If true skips bground patches', action="store_true")

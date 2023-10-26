@@ -6,7 +6,12 @@ import os
 import json
 import pandas as pd
 from tqdm import tqdm 
+import argparse
 from utils.plot_utils import glands_visualization_relative_area, plot_glands_histogram, plot_glands_histogram_comparison
+
+parser = argparse.ArgumentParser(description='Get glands features from masks.')
+parser.add_argument('-s', '--src_folder', help="path to folder that mask and patches are saved", type=str)
+parser.add_argument('-c', '--compare_folder', help="Another folder to compare with src_folder.", default= None, type=str)
 
 class GlandsPosprocessing():
     def __init__(self,path_to_folder : str):
@@ -64,19 +69,18 @@ class GlandsPosprocessing():
         wsi_name_to_compare = os.path.basename(glands_posprocessing_to_compare.path_to_folder)
         plot_glands_histogram_comparison(self.glands_data, glands_posprocessing_to_compare.glands_data, wsi_name,wsi_name_to_compare, self.min_relative_area)
 
-def main():
-    PATH_TO_FOLDER_1 = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
-    PATH_TO_FOLDER_2 = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/44-D5_epithelium'   
 
-    glands_posprocessing_1 = GlandsPosprocessing(PATH_TO_FOLDER_1)
+if __name__ == "__main__":
+
+    args = parser.parse_args() 
+
+    glands_posprocessing_1 = GlandsPosprocessing(args.src_folder)
     glands_posprocessing_1.extract_features()
     glands_posprocessing_1.plot_results()
 
-    #glands_posprocessing_2 = GlandsPosprocessing(PATH_TO_FOLDER_2)
-    #glands_posprocessing_2.extract_features()
-    #glands_posprocessing_2.plot_results()
+    if args.compare_folder is not None:
+        glands_posprocessing_2 = GlandsPosprocessing(args.compare_folder)
+        glands_posprocessing_2.extract_features()
+        glands_posprocessing_2.plot_results()
 
-    #glands_posprocessing_2.compare_with(glands_posprocessing_1)
-
-if __name__ == "__main__":
-    main()
+        glands_posprocessing_1.compare_with(glands_posprocessing_2)  
