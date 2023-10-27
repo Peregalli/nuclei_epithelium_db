@@ -1,0 +1,41 @@
+PipelineName "Fibrosis segmentation - experimento 112"
+PipelineDescription "Segmentacion de fibrosis con U-Net entrenado en clusteruy"
+PipelineInputData WSI "Whole-slide image"
+PipelineOutputData Segmentation stitcher 0
+Attribute classes "Background;Fibrosis"
+
+### Processing chain
+
+ProcessObject tissueSeg TissueSegmentation
+Input 0 WSI
+
+ProcessObject patch PatchGenerator
+Attribute patch-size 500 500
+Attribute patch-level 1
+Attribute patch-overlap 0
+Input 0 WSI
+Input 1 tissueSeg 0
+
+ProcessObject batch ImageToBatchGenerator
+Attribute max-batch-size 1
+Input 0 patch 0
+
+ProcessObject network NeuralNetwork
+Attribute scale-factor 0.003921568627451
+Attribute model "$CURRENT_PATH$/../models/unet-experimento-112-epoch-40.onnx"
+Attribute dimension-ordering "channel-first"
+Input 0 batch 0
+
+ProcessObject converter TensorToSegmentation
+Input 0 network 0
+
+ProcessObject stitcher PatchStitcher
+Input 0 converter 0
+
+### Renderers
+Renderer imgRenderer ImagePyramidRenderer
+Input 0 WSI
+
+Renderer segRenderer SegmentationRenderer
+Attribute border-opacity 0.5
+Input 0 stitcher 0
