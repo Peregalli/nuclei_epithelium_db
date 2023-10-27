@@ -10,9 +10,10 @@ parser = argparse.ArgumentParser(description='Epithelium inference with HE_IBDCo
 parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str, default='models/HE_IBDColEpi_512_2class_140222.onnx')
 parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'colon_epithelium_tiffs', type=str)
+parser.add_argument('-v', '--visualization', help = 'visualization render with FAST', action ="store_true", default = False)
 
 
-def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None):
+def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None, visualization : bool = False):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
@@ -45,14 +46,14 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_I
 
 
     # Create renderers to show both original WSI and segmentation output
+    if visualization:
+        wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
+        segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green(), 2:fast.Color.Red()}).connect(stitcher)
 
-    wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
-    segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green(), 2:fast.Color.Red()}).connect(stitcher)
-
-    # Create window to display segmentation
-    fast.SimpleWindow2D.create()\
-            .connect(wsiRenderer)\
-                .connect(segmentationRenderer).run()
+        # Create window to display segmentation
+        fast.SimpleWindow2D.create()\
+                .connect(wsiRenderer)\
+                    .connect(segmentationRenderer).run()
 
 
     finished = fast.RunUntilFinished.create()\
@@ -74,6 +75,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    epithelium_segmentation_wsi(args.wsi_path, args.model, args.output_folder)
+    epithelium_segmentation_wsi(args.wsi_path, args.model, args.output_folder, args.visualization)
 
 

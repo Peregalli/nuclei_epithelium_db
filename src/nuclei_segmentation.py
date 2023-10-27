@@ -7,9 +7,10 @@ parser = argparse.ArgumentParser(description='Nuclei inference with high_res_nuc
 parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str, default = 'models/high_res_nuclei_unet.onnx')
 parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'nuclei_tiffs', type=str)
+parser.add_argument('-v', '--visualization', help = 'visualization render with FAST', action ="store_true", default = False)
 
 
-def nuclei_segmentation_wsi(wsi_path : str , model_path : str = 'models/high_res_nuclei_unet.onnx', output : str = None):
+def nuclei_segmentation_wsi(wsi_path : str , model_path : str = 'models/high_res_nuclei_unet.onnx', output : str = None, visualization : bool = False):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
@@ -40,14 +41,15 @@ def nuclei_segmentation_wsi(wsi_path : str , model_path : str = 'models/high_res
     # Create patch stitcher to generate pyramidal tiff output 
     stitcher = fast.PatchStitcher.create().connect(0, nn)
     
-    # Create renderers to show both original WSI and segmentation output 
-    wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
-    segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green()}).connect(stitcher)
-    
-    # Create window to display segmentation###   
-    fast.SimpleWindow2D.create()\
-        .connect(wsiRenderer)\
-        .connect(segmentationRenderer).run()
+    if visualization:
+        # Create renderers to show both original WSI and segmentation output 
+        wsiRenderer = fast.ImagePyramidRenderer.create().connect(0, importer)
+        segmentationRenderer = fast.SegmentationRenderer.create(opacity = 0.1,borderOpacity=1, colors={1: fast.Color.Green()}).connect(stitcher)
+
+        # Create window to display segmentation###   
+        fast.SimpleWindow2D.create()\
+            .connect(wsiRenderer)\
+            .connect(segmentationRenderer).run()
     
     finished = fast.RunUntilFinished.create()\
         .connect(stitcher)
@@ -68,4 +70,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    nuclei_segmentation_wsi(args.wsi_path, args.model, args.output_folder)
+    nuclei_segmentation_wsi(args.wsi_path, args.model, args.output_folder, args.visualization)
