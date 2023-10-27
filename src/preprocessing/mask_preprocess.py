@@ -63,14 +63,14 @@ def mask_preprocessing(src_folder : str, new_folder : str = None):
         x = int(x)
 
         glands_density = np.sum(new_mask[:,:,config['channel_glands']]>0)/(new_mask.shape[0]*new_mask.shape[1])
-        nuclei_density = np.sum(new_mask[:,:,config['channel_nuclei']]>0)/(new_mask.shape[0]*new_mask.shape[1])
+        #nuclei_density = np.sum(new_mask[:,:,config['channel_nuclei']]>0)/(new_mask.shape[0]*new_mask.shape[1])
         
         if config['channel_fibrosis'] is not None:
             fibrosis_density = np.sum(new_mask[:,:,config['channel_fibrosis']]>0)/(new_mask.shape[0]*new_mask.shape[1])
             density_map[y//config['patch_size'],x//config['patch_size'],config['channel_fibrosis']] = fibrosis_density
         
         density_map[y//config['patch_size'],x//config['patch_size'],config['channel_glands']] = glands_density
-        density_map[y//config['patch_size'],x//config['patch_size'],config['channel_nuclei']] = nuclei_density
+        density_map[y//config['patch_size'],x//config['patch_size'],config['channel_nuclei']] = nuclei_cleaning_filter.num_nuclei
         density_map[y//config['patch_size'],x//config['patch_size'],3] = 1
 
         cv.imwrite(os.path.join(DEST_FOLDER,fn),new_mask)

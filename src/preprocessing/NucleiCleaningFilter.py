@@ -9,6 +9,7 @@ class NucleiCleaningFilter():
         self.kernel_size = 3
         self.kernel = np.ones((self.kernel_size, self.kernel_size), np.uint8)
         self.glands_proportion = 0.0035
+        self.num_nuclei = None
     
     def apply(self, mask : np.ndarray)-> np.ndarray:
 
@@ -28,6 +29,9 @@ class NucleiCleaningFilter():
             new_nuclei_mask[nuceli_instances == nuclei] = 0
         
         mask[:,:,self.nuclei_channel] = new_nuclei_mask
+
+        # Calculate the total number of nuclei
+        self.num_nuclei = num_labels - len(nuclei_glands) - 1
 
         return mask
 

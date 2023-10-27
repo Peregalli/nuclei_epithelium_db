@@ -7,12 +7,12 @@ from preprocessing.HoleFillFilterPO import HoleFillFilterPO
 import argparse
 
 parser = argparse.ArgumentParser(description='Inference with glans-segmentation.onnx model.')
-parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str)
+parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str, default = 'models/glands-segmentation.onnx')
 parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'gland_tiffs', type=str)
 
 
-def gland_segmentation_wsi(wsi_path : str , model_path : str, output : str = None):
+def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-segmentation.onnx', output : str = None):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 

@@ -7,12 +7,12 @@ from preprocessing.HoleFillFilterPO import HoleFillFilterPO
 import argparse
 
 parser = argparse.ArgumentParser(description='Epithelium inference with HE_IBDColEpi_512_2class_140222.onnx model.')
-parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str)
+parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str, default='models/HE_IBDColEpi_512_2class_140222.onnx')
 parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'colon_epithelium_tiffs', type=str)
 
 
-def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str = None):
+def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
@@ -67,7 +67,7 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str, output : str 
     exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output,WSI_fn+'.tiff'))\
         .connect(finished)\
         .run()
-    
+    print(f'Inference finished. Saved at {os.path.join(output,WSI_fn+".tiff")}')
     return
     
 if __name__ == "__main__":

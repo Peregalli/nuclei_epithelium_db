@@ -4,12 +4,12 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Nuclei inference with high_res_nuclei_unet.onnx model.')
-parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str)
+parser.add_argument('-m', '--model', help="model path. Called high_res_nuclei_unet.onnx, Available in datahub", type=str, default = 'models/high_res_nuclei_unet.onnx')
 parser.add_argument('-w', '--wsi_path', help="path to wsi", type=str)
 parser.add_argument('-o', '--output_folder', default = 'nuclei_tiffs', type=str)
 
 
-def nuclei_segmentation_wsi(wsi_path : str , model_path : str, output : str):
+def nuclei_segmentation_wsi(wsi_path : str , model_path : str = 'models/high_res_nuclei_unet.onnx', output : str = None):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
 
@@ -21,7 +21,7 @@ def nuclei_segmentation_wsi(wsi_path : str , model_path : str, output : str):
 
     importer = fast.WholeSlideImageImporter.create(wsi_path)
 
-    tissueSegmentation = fast.TissueSegmentation.create().connect(importer)
+    tissueSegmentation = fast.TissueSegmentation.create(threshold = 70).connect(importer)
 
     patchGenerator = fast.PatchGenerator.create(patchSize, patchSize, 
                                                 magnification=magnification, 
@@ -52,13 +52,16 @@ def nuclei_segmentation_wsi(wsi_path : str , model_path : str, output : str):
     finished = fast.RunUntilFinished.create()\
         .connect(stitcher)
     
+    if output is None:
+        output = os.path.join(os.getcwd(),'nuclei_tiffs')
+
     if not os.path.exists(output):
         os.mkdir(output)
     
     exporter = fast.TIFFImagePyramidExporter.create(os.path.join(output,WSI_fn+'.tiff'))\
         .connect(finished)\
         .run()
-    
+    print(f'Inference finished. Saved at {os.path.join(output,WSI_fn+".tiff")}')
     return
 
 if __name__ == "__main__":
