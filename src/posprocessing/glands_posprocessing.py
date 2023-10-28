@@ -76,13 +76,15 @@ class GlandsPosprocessing():
         glands_density = self.get_glands_density_greatter_than(relative_area)
         if len(glands_density) == 0:
             print(f'Glands density greatter than {relative_area} : 0')
+            return
+        
         elif len(glands_density) > 5:
             worst_cases = glands_density.sort_values(by=['relative_area'], ascending=False).head(5)
 
         else :
             worst_cases = glands_density.sort_values(by=['relative_area'], ascending=False)
 
-        subplot_masks(worst_cases, self.params,self.params['output_dir'] , title = f'Glands density greatter than {relative_area}')
+            subplot_masks(worst_cases, self.params,self.params['output_dir'] , title = f'Glands density greatter than {relative_area}')
         
 
 
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     glands_posprocessing_1.plot_results()
 
     glands_posprocessing_1.show_glands_density_greatter_than(0.8)
-    
+
     if args.compare_folder is not None:
         glands_posprocessing_2 = GlandsPosprocessing(args.compare_folder)
         glands_posprocessing_2.extract_features()
