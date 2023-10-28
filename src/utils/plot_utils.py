@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import sys
+sys.path.append('src/')
 import numpy as np
 import os
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -63,6 +65,27 @@ def density_color_map_plot(density_map : np.ndarray, gland_channel : int, nuclei
     plt.savefig(os.path.join(dst_folder,'density_map.png'))
     return
 
+def subplot_masks(df : pd.DataFrame,config : dict, root_to_folder : str, title : str = None):
+    fig, axs = plt.subplots(1, len(df), figsize = (len(df)*5, 5))
+    fig.suptitle(f'{os.path.basename(root_to_folder)} WSI - {title}', fontsize = 20)
+    df = df.reset_index()
+    for i, row in df.iterrows():
+
+        mask_fn = os.path.basename(root_to_folder)+'_'+str(config['level'])+'_'+row.patch_loc+'.png'
+        PATH_TO_MASK = os.path.join(root_to_folder,'new_masks',mask_fn)
+        PATH_TO_IMG = os.path.join(root_to_folder,'patches',mask_fn)
+        gland_mask = cv.imread(PATH_TO_MASK)[:,:,config['channel_glands']]
+        img = cv.imread(PATH_TO_IMG)[:,:,::-1]
+    
+        ax = axs[i]
+        ax.imshow(img)
+        ax.imshow(gland_mask> 0,alpha = 0.3,cmap = 'gray')
+        ax.axis('off')
+        ax.set_title(f'High glands density in {row.patch_loc}', fontsize = 15)
+
+    plt.savefig(os.path.join(root_to_folder, f'{title}.png'))
+    plt.show()
+    return
 
 def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_folder : str):
     
