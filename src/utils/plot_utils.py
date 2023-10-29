@@ -170,8 +170,10 @@ def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, w
     c_glands = 'blue'
 
     plt.figure(figsize = (25,10))
-    plt.hist(df_2.relative_area, bins=50, color = c_epith, alpha = 0.6, label = f'{wsi_name_2}')
-    plt.hist(df_1.relative_area, bins=50, color = c_glands, alpha = 0.6, label = f'{wsi_name_1}')
+    plt.hist(df_2.relative_area, bins=50,density= True, color = c_epith, alpha = 0.6, label = f'{wsi_name_2}')
+    plt.hist(df_1.relative_area, bins=50,density= True, color = c_glands, alpha = 0.6, label = f'{wsi_name_1}')
+    plt.ylabel('Normalized Logaritmic Histogram', fontsize = 20)
+    plt.xlabel('Relative area', fontsize = 20)
     plt.yscale('log')
     plt.xticks(fontsize=15)  # Change the font size as needed
     plt.yticks(fontsize=15)
@@ -183,21 +185,26 @@ def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, w
     plt.show()
     return
 
-def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_area : float = 0.005):
+def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_area : float = 0.005,color : str = None):
 
     wsi_name, model = os.path.basename(root_to_folder).split('_')
-    if model == 'epithelium':
-        color = 'red'
-    else :
-        color = 'blue'
+
+    if color is None:
+        if model == 'epithelium':
+            color = 'red'
+        else :
+            color = 'blue'
 
     df = df[df.relative_area > threshold_area]    
+    bins = np.linspace(0, 1, num=50)
 
-    plt.figure(figsize = (25,10))
-    plt.hist(df.relative_area, bins=50, color = color, alpha = 0.6, label = f'{model} model')
+    plt.figure(figsize = (25,7))
+    plt.hist(df.relative_area, bins=bins, density = True, color = color, alpha = 0.8, label = f'{model} model')
     plt.yscale('log')
     plt.xticks(fontsize=15)  # Change the font size as needed
     plt.yticks(fontsize=15)
+    plt.ylabel('Normalized Logaritmic Histogram', fontsize = 20)
+    plt.xlabel('Relative area', fontsize = 20)
     plt.legend(fontsize=20)
     plt.title(f'Glands area histograms for {wsi_name}.svs', fontsize = 25)
     plt.grid()

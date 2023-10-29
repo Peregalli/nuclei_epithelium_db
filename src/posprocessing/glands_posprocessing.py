@@ -54,9 +54,9 @@ class GlandsPosprocessing():
         df.to_csv(os.path.join(self.path_to_folder,'glands_report.csv'))        
         self.glands_data = df
     
-    def plot_results(self):
+    def plot_results(self, hist_color : str = None):
         glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
-        plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area)
+        plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area,color = hist_color)
 
     def __get_params(self):
         assert os.path.exists(os.path.join(self.path_to_folder,'report.json')), 'report.json not found. Run extract_all_patches.py first'
