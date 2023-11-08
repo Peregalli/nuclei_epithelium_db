@@ -54,9 +54,16 @@ class GlandsPosprocessing():
         df.to_csv(os.path.join(self.path_to_folder,'glands_report.csv'))        
         self.glands_data = df
     
-    def plot_results(self, hist_color : str = None):
+    def plot_results(self, hist_color : str = None, micro_meters : bool = False):
         glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
-        plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area,color = hist_color)
+        if not micro_meters:
+            plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area,color = hist_color)
+        else:   
+            pixel_scale = np.float16(self.params['pixel_scale'])/1000
+            patch_size = self.params['patch_size']
+            glands_data_um2 = self.glands_data.copy()
+            glands_data_um2.relative_area = glands_data_um2.relative_area*((pixel_scale*patch_size)**2)
+            plot_glands_histogram(glands_data_um2, self.path_to_folder, threshold_area = self.min_relative_area*((pixel_scale*patch_size)**2),color = hist_color, max_value = (pixel_scale*patch_size)**2)
 
     def __get_params(self):
         assert os.path.exists(os.path.join(self.path_to_folder,'report.json')), 'report.json not found. Run extract_all_patches.py first'
@@ -64,10 +71,23 @@ class GlandsPosprocessing():
             params = json.load(config_file)
         return params
     
-    def compare_with(self, glands_posprocessing_to_compare):
+    def compare_with(self, glands_posprocessing_to_compare, micro_meters = False):
         wsi_name = os.path.basename(self.path_to_folder)
         wsi_name_to_compare = os.path.basename(glands_posprocessing_to_compare.path_to_folder)
-        plot_glands_histogram_comparison(self.glands_data, glands_posprocessing_to_compare.glands_data, wsi_name,wsi_name_to_compare, self.min_relative_area)
+
+        if not micro_meters:
+            plot_glands_histogram_comparison(self.glands_data, glands_posprocessing_to_compare.glands_data, wsi_name,wsi_name_to_compare, self.min_relative_area)
+        
+        else :
+            # in micrometers change to milimeters
+            pixel_scale = np.float16(self.params['pixel_scale'])/1000
+            patch_size = self.params['patch_size']
+            glands_data_um2 = self.glands_data.copy()
+            glands_data_um2.relative_area = glands_data_um2.relative_area*((pixel_scale*patch_size)**2)
+            glands_data_to_compare_um2 = glands_posprocessing_to_compare.glands_data.copy()
+            glands_data_to_compare_um2.relative_area = glands_data_to_compare_um2.relative_area*((pixel_scale*patch_size)**2)
+            plot_glands_histogram_comparison(glands_data_um2, glands_data_to_compare_um2, wsi_name,wsi_name_to_compare, self.min_relative_area*((pixel_scale*patch_size)**2),
+                                             max_value = (pixel_scale*patch_size)**2)
 
     def get_glands_density_greatter_than(self, relative_area : float):
         return self.glands_data[self.glands_data['relative_area'] > relative_area]
@@ -94,13 +114,13 @@ if __name__ == "__main__":
 
     glands_posprocessing_1 = GlandsPosprocessing(args.src_folder)
     glands_posprocessing_1.extract_features()
-    glands_posprocessing_1.plot_results()
+    glands_posprocessing_1.plot_results(micro_meters = True)
 
     glands_posprocessing_1.show_glands_density_greatter_than(0.8)
 
     if args.compare_folder is not None:
         glands_posprocessing_2 = GlandsPosprocessing(args.compare_folder)
         glands_posprocessing_2.extract_features()
-        glands_posprocessing_2.plot_results()
+        glands_posprocessing_2.plot_results(micro_meters = True)
 
-        glands_posprocessing_1.compare_with(glands_posprocessing_2)  
+        glands_posprocessing_1.compare_with(glands_posprocessing_2,micro_meters = True)  

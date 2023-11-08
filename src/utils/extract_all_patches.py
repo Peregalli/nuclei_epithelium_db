@@ -7,6 +7,7 @@ from tqdm import tqdm
 import argparse
 import json
 import warnings
+import configparser
 
 warnings.filterwarnings("ignore", module="TIFF")
 parser = argparse.ArgumentParser(description='Extract patches from WSI and segmentation masks')
@@ -32,6 +33,24 @@ def get_access_to_tiff(tiff_path : str, level : int) -> tuple:
     access_mask = mask_pyramid_image.getAccess(fast.ACCESS_READ)
     
     return access_mask, w, h
+
+def get_pixel_scale_from_wsi(wsi_path : str) -> float:
+    '''
+    Returns the pixel scale of a WSI. Gets that info from the .dsmeta folder
+    If the .dsmeta folder does not exist, returns None
+    
+    '''
+
+    folder_path = wsi_path + '.dsmeta'
+    info_file = os.path.join(folder_path,'info.ini')
+    if not os.path.exists(info_file):
+        return None
+    
+    config = configparser.ConfigParser()
+    config.read(info_file)
+    pixel_scale = config.get('info', 'scale')
+    
+    return pixel_scale
 
 def get_mask_from_access(access: tuple, x : int, y : int, W: int, H:int, patch_size : int, level : int)-> np.ndarray:
     
@@ -66,6 +85,7 @@ def extract_all_patches(WSI_path : str, config : dict, TIFF_path_1 : str, TIFF_p
 
     config['wsi_width'] = W
     config['wsi_height'] = H
+    config['pixel_scale'] = get_pixel_scale_from_wsi(WSI_path)
 
     access_wsi_image = wsi_pyramid_image.getAccess(fast.ACCESS_READ)
 

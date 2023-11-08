@@ -161,19 +161,24 @@ def show_masks(list_of_fn : str, path_to_folder : str, cmap : str = 'gray', chan
     return
                
 def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, wsi_name_1 : str, wsi_name_2 : str, threshold_area : float = 0.005,
-                                    output_dir : str = './'):
+                                    output_dir : str = './', max_value = 1):
     
     df_2 = df_2[df_2.relative_area > threshold_area]
     df_1 = df_1[df_1.relative_area > threshold_area]
 
     c_epith = 'red'
     c_glands = 'blue'
+    bins = np.linspace(0, max_value, num=50)
 
     plt.figure(figsize = (25,10))
-    plt.hist(df_2.relative_area, bins=50,density= True, color = c_epith, alpha = 0.6, label = f'{wsi_name_2}')
-    plt.hist(df_1.relative_area, bins=50,density= True, color = c_glands, alpha = 0.6, label = f'{wsi_name_1}')
-    plt.ylabel('Normalized Logaritmic Histogram', fontsize = 20)
-    plt.xlabel('Relative area', fontsize = 20)
+    plt.hist(df_2.relative_area, bins=bins, color = c_epith, alpha = 0.6, label = f'{wsi_name_2}')
+    plt.hist(df_1.relative_area, bins=bins, color = c_glands, alpha = 0.6, label = f'{wsi_name_1}')
+    plt.ylabel('Logaritmic Histogram', fontsize = 20)
+    if max_value == 1:
+        plt.xlabel('Relative area', fontsize = 20)
+    else :
+        plt.xlabel('Area ($mm^{2}$)', fontsize = 20)
+
     plt.yscale('log')
     plt.xticks(fontsize=15)  # Change the font size as needed
     plt.yticks(fontsize=15)
@@ -185,7 +190,7 @@ def plot_glands_histogram_comparison(df_1 : pd.DataFrame, df_2 : pd.DataFrame, w
     plt.show()
     return
 
-def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_area : float = 0.005,color : str = None):
+def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_area : float = 0.005,color : str = None, max_value = 1):
 
     wsi_name, model = os.path.basename(root_to_folder).split('_')
 
@@ -196,15 +201,18 @@ def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_are
             color = 'blue'
 
     df = df[df.relative_area > threshold_area]    
-    bins = np.linspace(0, 1, num=50)
+    bins = np.linspace(0, max_value, num=50)
 
     plt.figure(figsize = (25,7))
-    plt.hist(df.relative_area, bins=bins, density = True, color = color, alpha = 0.8, label = f'{model} model')
-    plt.yscale('log')
+    plt.hist(df.relative_area, bins=bins, density=True, color = color, alpha = 0.8, label = f'{model} model')
     plt.xticks(fontsize=15)  # Change the font size as needed
     plt.yticks(fontsize=15)
-    plt.ylabel('Normalized Logaritmic Histogram', fontsize = 20)
-    plt.xlabel('Relative area', fontsize = 20)
+    plt.yscale('log')
+    plt.ylabel('Logaritmic Histogram', fontsize = 20)
+    if max_value == 1:
+        plt.xlabel('Relative area', fontsize = 20)
+    else :
+        plt.xlabel('Area ($mm^{2}$)', fontsize = 20)
     plt.legend(fontsize=20)
     plt.title(f'Glands area histograms for {wsi_name}.svs', fontsize = 25)
     plt.grid()
