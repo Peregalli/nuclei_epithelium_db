@@ -121,7 +121,7 @@ def main():
         nuclei_df = pd.concat([nuclei_df, tmp_df], ignore_index=True)
 
     # Select 3 random images
-    selected_images = np.random.choice(images_name, 3, replace=False)
+    selected_images = np.random.choice(np.unique(nuclei_df['image_name']), 3, replace=False)
     # Load images
     images = [cv2.imread(os.path.join(PATH_TO_IMAGE, image_name)) for image_name in selected_images]
     # Run kmeans and plot results
