@@ -87,7 +87,7 @@ def subplot_masks(df : pd.DataFrame,config : dict, root_to_folder : str, title :
     plt.show()
     return
 
-def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_folder : str):
+def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_folder : str,max_area : np.float16 = 1):
     
     WSI_NAME, model = os.path.basename(root_to_folder).split('_')
     PATH_TO_FOLDER = root_to_folder
@@ -96,8 +96,12 @@ def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_
         color = (255,0,0)
     else :
         color = (0,0,255)
-        
-    range_areas = np.arange(0,1.2,0.2)
+    if max_area == 1:
+        range_areas = np.arange(0,1.2,0.2)
+    else : 
+        step = np.round(max_area/5,3)
+        range_areas = np.arange(0,step*6,step)
+
     fig, axs = plt.subplots(1, len(range_areas) -1, figsize = (25, 5))
     fig.suptitle(f'Relative area per gland instance - {model} model', fontsize = 20)
 
@@ -129,7 +133,10 @@ def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_
         ax.imshow(img)
         ax.imshow(gland_mask> 0,alpha = 0.3,cmap = 'gray')
         ax.axis('off')
-        ax.set_title(f'Relative area between {round(min_v, 1)} - {round(max_v,1)}', fontsize = 15)
+        if max_area == 1:
+            ax.set_title(f'Relative area between {round(min_v, 1)} - {round(max_v,1)}', fontsize = 15)
+        else :
+            ax.set_title(f'Area between {round(min_v, 2)} - {round(max_v,2)}', fontsize = 15)
     
     plt.savefig(os.path.join(PATH_TO_FOLDER, f'Relative_area_per_gland_instance_{model}.png'))
     plt.show()

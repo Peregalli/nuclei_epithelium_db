@@ -14,12 +14,13 @@ parser.add_argument('-s', '--src_folder', help="path to folder that mask and pat
 parser.add_argument('-c', '--compare_folder', help="Another folder to compare with src_folder.", default= None, type=str)
 
 class GlandsPosprocessing():
-    def __init__(self,path_to_folder : str):
+    def __init__(self,path_to_folder : str, micro_meters : bool = False):
         self.path_to_folder = path_to_folder
         self.params = self.__get_params()
         self.min_relative_area = 0.005
         self.max_relative_area = None  
         self.path_to_masks = os.path.join(path_to_folder,'new_masks')
+        self.micro_meters = micro_meters
     
     def extract_features(self, save_mask_instances : bool = True):
 
@@ -54,15 +55,18 @@ class GlandsPosprocessing():
         df.to_csv(os.path.join(self.path_to_folder,'glands_report.csv'))        
         self.glands_data = df
     
-    def plot_results(self, hist_color : str = None, micro_meters : bool = False):
-        glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
-        if not micro_meters:
+    def plot_results(self, hist_color : str = None):
+        
+        if not self.micro_meters:
             plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area,color = hist_color)
+            glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
         else:   
             pixel_scale = np.float16(self.params['pixel_scale'])/1000
             patch_size = self.params['patch_size']
             glands_data_um2 = self.glands_data.copy()
             glands_data_um2.relative_area = glands_data_um2.relative_area*((pixel_scale*patch_size)**2)
+
+            glands_visualization_relative_area(glands_data_um2, self.params, self.path_to_folder, max_area=(pixel_scale*patch_size)**2)
             plot_glands_histogram(glands_data_um2, self.path_to_folder, threshold_area = self.min_relative_area*((pixel_scale*patch_size)**2),color = hist_color, max_value = (pixel_scale*patch_size)**2)
 
     def __get_params(self):
@@ -71,11 +75,11 @@ class GlandsPosprocessing():
             params = json.load(config_file)
         return params
     
-    def compare_with(self, glands_posprocessing_to_compare, micro_meters = False):
+    def compare_with(self, glands_posprocessing_to_compare):
         wsi_name = os.path.basename(self.path_to_folder)
         wsi_name_to_compare = os.path.basename(glands_posprocessing_to_compare.path_to_folder)
 
-        if not micro_meters:
+        if not self.micro_meters:
             plot_glands_histogram_comparison(self.glands_data, glands_posprocessing_to_compare.glands_data, wsi_name,wsi_name_to_compare, self.min_relative_area)
         
         else :
@@ -104,7 +108,7 @@ class GlandsPosprocessing():
         else :
             worst_cases = glands_density.sort_values(by=['relative_area'], ascending=False)
 
-            subplot_masks(worst_cases, self.params,self.params['output_dir'] , title = f'Glands density greatter than {relative_area}')
+        subplot_masks(worst_cases, self.params,self.params['output_dir'] , title = f'Glands density greatter than {relative_area}')
         
 
 
@@ -112,15 +116,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args() 
 
-    glands_posprocessing_1 = GlandsPosprocessing(args.src_folder)
+    glands_posprocessing_1 = GlandsPosprocessing(args.src_folder, micro_meters = True)
     glands_posprocessing_1.extract_features()
-    glands_posprocessing_1.plot_results(micro_meters = True)
+    glands_posprocessing_1.plot_results()
 
     glands_posprocessing_1.show_glands_density_greatter_than(0.8)
 
     if args.compare_folder is not None:
-        glands_posprocessing_2 = GlandsPosprocessing(args.compare_folder)
+        glands_posprocessing_2 = GlandsPosprocessing(args.compare_folder, micro_meters = True)
         glands_posprocessing_2.extract_features()
-        glands_posprocessing_2.plot_results(micro_meters = True)
+        glands_posprocessing_2.plot_results()
 
-        glands_posprocessing_1.compare_with(glands_posprocessing_2,micro_meters = True)  
+        glands_posprocessing_1.compare_with(glands_posprocessing_2)  
