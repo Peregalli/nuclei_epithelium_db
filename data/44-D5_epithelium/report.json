@@ -1,0 +1,1 @@
+{"wsi_name": "44-D5", "glands_model_type": "epithelium", "output_dir": "44-D5_epithelium", "bgremoved": true, "patch_visualization": false, "level": 0, "patch_size": 1024, "channel_nuclei": 2, "channel_glands": 1, "channel_fibrosis": null, "patch_size_preprocessing": 512, "wsi_width": 44228, "wsi_height": 136628, "pixel_scale": "0.266904"}
