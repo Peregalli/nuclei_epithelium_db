@@ -20,7 +20,10 @@ class GlandsPosprocessing():
         self.min_relative_area = 0.005
         self.max_relative_area = None  
         self.path_to_masks = os.path.join(path_to_folder,'new_masks')
-        self.micro_meters = micro_meters
+        if micro_meters and self.params['pixel_scale'] is not None:
+            self.micro_meters = micro_meters
+        else : 
+            self.micro_meters = False
     
     def extract_features(self, save_mask_instances : bool = True):
 

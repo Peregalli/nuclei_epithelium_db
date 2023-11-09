@@ -136,7 +136,7 @@ def glands_visualization_relative_area(df : pd.DataFrame,config : dict, root_to_
         if max_area == 1:
             ax.set_title(f'Relative area between {round(min_v, 1)} - {round(max_v,1)}', fontsize = 15)
         else :
-            ax.set_title(f'Area between {round(min_v, 2)} - {round(max_v,2)}', fontsize = 15)
+            ax.set_title(f'Area between {round(min_v, 3)} - {round(max_v,3)}', fontsize = 15)
     
     plt.savefig(os.path.join(PATH_TO_FOLDER, f'Relative_area_per_gland_instance_{model}.png'))
     plt.show()
