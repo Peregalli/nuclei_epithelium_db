@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from posprocesing.feature_extraction import nuclei_feature_extraction
+from posprocessing.feature_extraction import nuclei_feature_extraction
 
 
 # Dictionary with BGR colors
