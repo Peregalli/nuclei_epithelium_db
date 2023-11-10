@@ -13,21 +13,17 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from posprocesing.feature_extraction import nuclei_feature_extraction
 
-# Minimum and maximum values of features from training data
-min_values = np.array([ 0.00000000e+00, -1.00000000e+00,  8.56904367e+00,  0.00000000e+00, 6.45690849e-03,  0.00000000e+00])
-max_values = np.array([2.47172100e+03, 6.01276822e-01, 2.34000000e+02, 6.76460977e-02, 1.00000000e+00, 7.46256951e+00])
-
 
 # Dictionary with BGR colors
 colors = {
     0: (0, 0, 255),        # Red
-    1: (0, 165, 255),      # Orange
+    1: (0, 255, 255),      # Yellow
     2: (255, 0, 0),        # Blue
-    3: (0, 255, 255),      # Yellow
+    3: (0, 255, 0),        # Green
     4: (255, 0, 255),      # Purple
     5: (255, 255, 0),      # Cyan
     6: (255, 0, 255),      # Magenta
-    7: (0, 255, 0),        # Green
+    7: (0, 165, 255),      # Orange
     8: (192, 192, 192),    # Silver
     9: (147, 20, 255),     # Pink
     10: (128, 128, 0),     # Teal
@@ -37,9 +33,18 @@ colors = {
     14: (0, 0, 128)        # Maroon
 }
 
+def normalize_features(X: np.ndarray)->np.ndarray:
+    '''
+    Normalize each feature using minimum and maximum values extracted from training data
+    '''
+    # Minimum and maximum values of features from training data
+    min_values = np.array([1.09020000e+01, 5.83402388e-02, 9.21593688e+00, 4.75859961e-05, 6.43694598e-03, 2.72346790e+00])
+    max_values = np.array([2.48667600e+03, 5.97835209e-01, 1.94816522e+02, 6.84880965e-02, 1.93625251e-01, 7.46806437e+00])
+    
+    return (X-min_values)/(max_values-min_values)
+
 # Function for making inference with kmeans in a subset of 3 images and plotting the results
-def run_kmeans_test(images: list, percentile_lower: np.ndarray, percentile_upper: np.ndarray, nuclei_df: pd.DataFrame, \
-                    images_names: np.ndarray, colors: dict, model):
+def plot_results_kmeans(images: list, nuclei_df: pd.DataFrame, images_names: np.ndarray, prediction: np.ndarray):
     '''
     cv2 documentation about functions use in this script:
     
@@ -50,23 +55,35 @@ def run_kmeans_test(images: list, percentile_lower: np.ndarray, percentile_upper
         color
         thickness
     '''
+    # Dictionary with RGB colors
+    colors = {
+        0: (255, 0, 0),        # Red
+        1: (255, 255, 0),      # Yellow
+        2: (0, 0, 255),        # Blue
+        3: (0, 255, 0),        # Green
+        4: (255, 0, 255),      # Purple
+        5: (0, 255, 255),      # Cyan
+        6: (255, 165, 0),      # Orange
+        7: (192, 192, 192),    # Silver
+        8: (255, 20, 147),     # Pink
+        9: (0, 128, 128),     # Teal
+        10: (42, 42, 0),       # Brown
+        11: (128, 128, 128),   # Gray
+        12: (128, 128, 0),     # Olive
+        13: (128, 0, 0)        # Maroon
+    }
 
     fig = plt.figure(figsize=(15,15))
 
     for i in np.arange(0,5,2):
 
         image_copy = images[i%3].copy()
-
-        # Normalize each feature using minimum and maximum values extracted from training data
-        X_test = nuclei_df[nuclei_df['image_name']==images_names[i%3]][['area', 'circularity', 'intensity', 'texture_R', 'texture_U', 'texture_E']]
-        X_test = (X_test - percentile_lower) / (percentile_upper - percentile_lower)
-
-        # Run the model over the selected images
-        prediction = model.predict(X_test.values)
+        tmp_df = nuclei_df[nuclei_df['image_name']==images_names[i%3]].copy()
+        tmp_df['prediction'] = prediction[nuclei_df['image_name']==images_names[i%3]]
 
         # Mark each cluster with a different color
-        for label in np.unique(model.labels_):
-            contours_list = nuclei_df[nuclei_df['image_name']==images_names[i%3]][prediction==label]['contour'].to_list()
+        for label in np.unique(prediction):
+            contours_list = tmp_df[tmp_df['prediction']==label]['contour'].to_list()
             cv2.drawContours(image_copy, contours_list, -1, colors[label], 3)
         
         fig.add_subplot(3, 2, i+1)
@@ -120,13 +137,20 @@ def main():
         tmp_df = pd.DataFrame(nuclei_data_dict)
         nuclei_df = pd.concat([nuclei_df, tmp_df], ignore_index=True)
 
+    # Filter nuclei with area below 10
+    nuclei_df = nuclei_df[nuclei_df['area']>10]
+    
     # Select 3 random images
     selected_images = np.random.choice(np.unique(nuclei_df['image_name']), 3, replace=False)
     # Load images
     images = [cv2.imread(os.path.join(PATH_TO_IMAGE, image_name)) for image_name in selected_images]
+    
+    # Normalize each feature using minimum and maximum values extracted from training data
+    X_norm = nuclei_df[['area', 'circularity', 'intensity', 'texture_R', 'texture_U', 'texture_E']]
+    X_norm = normalize_features(X_norm)
     # Run kmeans and plot results
-    run_kmeans_test(images=images, percentile_lower= min_values, percentile_upper= max_values, nuclei_df=nuclei_df, \
-                    images_names=selected_images, colors= colors, model=model)
+    prediction = model.predict(X_norm.values)
+    plot_results_kmeans(images, nuclei_df, selected_images, prediction)
     
 
 if __name__ == "__main__":

@@ -87,12 +87,19 @@ def main():
         tmp_df = pd.DataFrame(nuclei_data_dict)
         nuclei_df = pd.concat([nuclei_df, tmp_df], ignore_index=True)
 
-    # Select 3 random images
-    selected_images = np.random.choice(np.unique(nuclei_df['image_name']), 3, replace=False)
+    # Filter nuclei with area below 10
+    nuclei_df = nuclei_df[nuclei_df['area']>10]
+    
+    # Threshold to select nuclei with greater circularity
+    percentile = 90
+
+    # Select 3 images that contain nuclei with circularity greater than the percentile choosen
+    candidates_name = nuclei_df[nuclei_df['circularity']>np.percentile(nuclei_df['circularity'],percentile)]['image_name']
+    selected_images = np.random.choice(np.unique(candidates_name), 3, replace=False)
+
     # Load images
     images = [cv2.imread(os.path.join(PATH_TO_IMAGE, image_name)) for image_name in selected_images]
 
-    percentile = 90
     # Mark in the images the nuclei with high circularity
     nuclei_high_circularity(images, percentile, nuclei_df, selected_images)
 
