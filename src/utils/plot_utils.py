@@ -228,6 +228,81 @@ def plot_glands_histogram(df : pd.DataFrame, root_to_folder : str, threshold_are
     plt.show()
     return
 
+
+def nuclei_high_circularity(images: list, percentile: int, nuclei_df: pd.DataFrame, images_names: np.ndarray):
+        
+    fig = plt.figure(figsize=(15,15))
+
+    for i in np.arange(0,5,2):
+
+        # Get the contour of the selected nuclei with high circularity
+        high_circularity_nuclei = nuclei_df[nuclei_df['image_name']==images_names[i%3]]['circularity']>np.percentile(nuclei_df['circularity'],percentile) 
+        contours_high_circularity_nuclei = nuclei_df[nuclei_df['image_name']==images_names[i%3]][high_circularity_nuclei]['contour'].to_list()
+
+        # Draw the contours in the image
+        selected_image = images[i%3].copy()
+        cv.drawContours(selected_image, contours_high_circularity_nuclei, -1, (0,255,0), 3)
+
+        
+        fig.add_subplot(3, 2, i+1)
+        plt.imshow(images[i%3])
+        plt.axis('off')
+        fig.add_subplot(3, 2, i+2)
+        plt.imshow(selected_image)
+        plt.axis('off')
+
+
+    fig.suptitle('Nuclei with high circularity', fontsize=25)
+    plt.tight_layout()
+    plt.show() 
+
+
+def plot_results_kmeans(images: list, nuclei_df: pd.DataFrame, images_names: np.ndarray, prediction: np.ndarray):
+    
+    # Dictionary with RGB colors
+    colors = {
+        0: (255, 0, 0),        # Red
+        1: (255, 255, 0),      # Yellow
+        2: (0, 0, 255),        # Blue
+        3: (0, 255, 0),        # Green
+        4: (255, 0, 255),      # Purple
+        5: (0, 255, 255),      # Cyan
+        6: (255, 165, 0),      # Orange
+        7: (192, 192, 192),    # Silver
+        8: (255, 20, 147),     # Pink
+        9: (0, 128, 128),     # Teal
+        10: (42, 42, 0),       # Brown
+        11: (128, 128, 128),   # Gray
+        12: (128, 128, 0),     # Olive
+        13: (128, 0, 0)        # Maroon
+    }
+
+    fig = plt.figure(figsize=(15,15))
+
+    for i in np.arange(0,5,2):
+
+        image_copy = images[i%3].copy()
+        tmp_df = nuclei_df[nuclei_df['image_name']==images_names[i%3]].copy()
+        tmp_df['prediction'] = prediction[nuclei_df['image_name']==images_names[i%3]]
+
+        # Mark each cluster with a different color
+        for label in np.unique(prediction):
+            contours_list = tmp_df[tmp_df['prediction']==label]['contour'].to_list()
+            cv.drawContours(image_copy, contours_list, -1, colors[label], 3)
+        
+        fig.add_subplot(3, 2, i+1)
+        plt.imshow(images[i%3])
+        plt.axis('off')
+        fig.add_subplot(3, 2, i+2)
+        plt.imshow(image_copy)
+        plt.axis('off')
+
+
+    fig.suptitle('Kmeans results', fontsize=25)
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
     PATH_TO_FOLDER = '/home/agustina/Documents/FING/proyecto/nuclei_epithelium_db/Lady_epithelium'
     density_map = np.load(os.path.join(PATH_TO_FOLDER,'density_map.npy'))
