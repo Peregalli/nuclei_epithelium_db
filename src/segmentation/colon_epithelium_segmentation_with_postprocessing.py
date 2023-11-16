@@ -16,6 +16,7 @@ parser.add_argument('-v', '--visualization', help = 'visualization render with F
 def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None, visualization : bool = False):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
+    print(f'Inference started for {WSI_fn}, this could take a while...')
 
     #Hyperparameters
     patchSize = 512

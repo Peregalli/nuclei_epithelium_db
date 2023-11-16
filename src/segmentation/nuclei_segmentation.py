@@ -13,6 +13,7 @@ parser.add_argument('-v', '--visualization', help = 'visualization render with F
 def nuclei_segmentation_wsi(wsi_path : str , model_path : str = 'models/high_res_nuclei_unet.onnx', output : str = None, visualization : bool = False):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
+    print(f'Inference started for {WSI_fn}, this could take a while...')
 
     #Hiperparameters
     patchSize = 256

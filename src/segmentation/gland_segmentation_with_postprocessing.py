@@ -16,6 +16,7 @@ parser.add_argument('-v', '--visualization', help = 'visualization render with F
 def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-segmentation.onnx', output : str = None, visualization : bool = False):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
+    print(f'Inference started for {WSI_fn}, this could take a while...')
 
     #Hyperparameters
     patchSize = 512
@@ -70,6 +71,7 @@ def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-se
         .connect(finished)\
         .run()
     
+    print(f'Inference finished. Saved at {os.path.join(output,WSI_fn+".tiff")}')
     return
     
 if __name__ == "__main__":
