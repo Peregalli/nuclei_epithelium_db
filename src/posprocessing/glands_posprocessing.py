@@ -41,7 +41,7 @@ class GlandsPosprocessing():
         for mask_fn in tqdm(os.listdir(self.path_to_masks)):
 
             mask_ori = cv.imread(os.path.join(self.path_to_masks,mask_fn))
-            mask = mask_ori[:,:,channel_glands]
+            mask = mask_ori[:,:,channel_glands].copy()
             patch_loc = (mask_fn.split('.')[0]).split('_')[-2:]
             # Separate in instances
             num_labels, glands_instances, stats, centroids = cv.connectedComponentsWithStats(mask)
@@ -53,16 +53,17 @@ class GlandsPosprocessing():
 
             if save_mask_instances :
                 mask_ori[:,:,channel_glands] = glands_instances
-                cv.imwrite(os.path.join(self.path_to_masks,mask_fn), mask)
+                cv.imwrite(os.path.join(self.path_to_masks,mask_fn), mask_ori)
 
         df.to_csv(os.path.join(self.path_to_folder,'glands_report.csv'))        
         self.glands_data = df
     
-    def plot_results(self, hist_color : str = None):
+    def plot_results(self, hist_color : str = None, visualize_img : bool = True):
         
         if not self.micro_meters:
             plot_glands_histogram(self.glands_data, self.path_to_folder, self.min_relative_area,color = hist_color)
-            glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
+            if visualize_img:
+                glands_visualization_relative_area(self.glands_data, self.params, self.path_to_folder)
         else:   
             pixel_scale = np.float16(self.params['pixel_scale'])/1000
             patch_size = self.params['patch_size']
@@ -70,7 +71,9 @@ class GlandsPosprocessing():
             glands_data_um2.relative_area = glands_data_um2.relative_area*((pixel_scale*patch_size)**2)
 
             glands_visualization_relative_area(glands_data_um2, self.params, self.path_to_folder, max_area=(pixel_scale*patch_size)**2)
-            plot_glands_histogram(glands_data_um2, self.path_to_folder, threshold_area = self.min_relative_area*((pixel_scale*patch_size)**2),color = hist_color, max_value = (pixel_scale*patch_size)**2)
+            
+            if visualize_img:
+                plot_glands_histogram(glands_data_um2, self.path_to_folder, threshold_area = self.min_relative_area*((pixel_scale*patch_size)**2),color = hist_color, max_value = (pixel_scale*patch_size)**2)
 
     def __get_params(self):
         assert os.path.exists(os.path.join(self.path_to_folder,'report.json')), 'report.json not found. Run extract_all_patches.py first'
