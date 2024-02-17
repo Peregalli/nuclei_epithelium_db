@@ -13,10 +13,9 @@ parser.add_argument('-o', '--output_folder', default = 'colon_epithelium_tiffs',
 parser.add_argument('-v', '--visualization', help = 'visualization render with FAST', action ="store_true", default = False)
 
 
-def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None, visualization : bool = False):
+def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_IBDColEpi_512_2class_140222.onnx', output : str = None, visualization : bool = False, tissueSegmentationThreshold : int = 70):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
-    print(f'Inference started for {WSI_fn}, this could take a while...')
 
     #Hyperparameters
     patchSize = 512
@@ -24,9 +23,19 @@ def epithelium_segmentation_wsi(wsi_path : str , model_path : str = 'models/HE_I
     overlapPercent = 0.3
     scaleFactor=1.0
 
+    # Configura el motor de inferencia para usar el orden de canales de PyTorch
+    inferenceEngineList = fast.InferenceEngineManager.getEngineList()
+    if (fast.InferenceEngineManager.isEngineAvailable(inferenceEngineList[0])):
+        print(f"Engine {inferenceEngineList[0]} is available")
+        inferenceEngine = fast.InferenceEngineManager.loadEngine(inferenceEngineList[0])
+        inferenceEngine.setDeviceType(fast.InferenceDeviceType_GPU)
+        inferenceEngine.setImageOrdering(fast.ImageOrdering_ChannelFirst)
+    else:
+        print(f"Engine {inferenceEngineList[0]} is not available")
+
     importer = fast.WholeSlideImageImporter.create(wsi_path)
 
-    tissueSegmentation = fast.TissueSegmentation.create(threshold = 70).connect(importer)
+    tissueSegmentation = fast.TissueSegmentation.create(threshold = tissueSegmentationThreshold).connect(importer)
 
     patchGenerator = fast.PatchGenerator.create(patchSize, 
                                                 patchSize, 
