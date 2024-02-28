@@ -15,6 +15,16 @@ overlapPercent = 0.1
 scaleFactor=1.0
 confidence_threshold = 0.5
 
+# Configura el motor de inferencia para usar el orden de canales de PyTorch
+inferenceEngineList = fast.InferenceEngineManager.getEngineList()
+if (fast.InferenceEngineManager.isEngineAvailable(inferenceEngineList[0])):
+    print(f"Engine {inferenceEngineList[0]} is available")
+    inferenceEngine = fast.InferenceEngineManager.loadEngine(inferenceEngineList[0])
+    inferenceEngine.setDeviceType(fast.InferenceDeviceType_GPU)
+    inferenceEngine.setImageOrdering(fast.ImageOrdering_ChannelFirst)
+else:
+    print(f"Engine {inferenceEngineList[0]} is not available")
+
 importer = fast.WholeSlideImageImporter\
 .create(WSIPath)
 

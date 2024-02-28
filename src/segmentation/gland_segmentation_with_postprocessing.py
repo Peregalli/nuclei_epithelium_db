@@ -13,10 +13,9 @@ parser.add_argument('-o', '--output_folder', default = 'gland_tiffs', type=str)
 parser.add_argument('-v', '--visualization', help = 'visualization render with FAST', action ="store_true", default = False)
 
 
-def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-segmentation.onnx', output : str = None, visualization : bool = False):
+def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-segmentation.onnx', output : str = None, visualization : bool = False, tissueSegmentationThreshold : int = 70):
 
     WSI_fn = os.path.splitext(os.path.basename(wsi_path))[0]
-    print(f'Inference started for {WSI_fn}, this could take a while...')
 
     #Hyperparameters
     patchSize = 512
@@ -24,9 +23,19 @@ def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-se
     overlapPercent = .3
     scaleFactor=1/255
 
+    # Configura el motor de inferencia para usar el orden de canales de PyTorch
+    inferenceEngineList = fast.InferenceEngineManager.getEngineList()
+    if (fast.InferenceEngineManager.isEngineAvailable(inferenceEngineList[0])):
+        print(f"Engine {inferenceEngineList[0]} is available")
+        inferenceEngine = fast.InferenceEngineManager.loadEngine(inferenceEngineList[0])
+        inferenceEngine.setDeviceType(fast.InferenceDeviceType_GPU)
+        inferenceEngine.setImageOrdering(fast.ImageOrdering_ChannelFirst)
+    else:
+        print(f"Engine {inferenceEngineList[0]} is not available")
+
     importer = fast.WholeSlideImageImporter.create(wsi_path)
 
-    tissueSegmentation = fast.TissueSegmentation.create(threshold = 70).connect(importer)
+    tissueSegmentation = fast.TissueSegmentation.create(threshold = tissueSegmentationThreshold).connect(importer)
 
     patchGenerator = fast.PatchGenerator.create(patchSize, 
                                                 patchSize, 
@@ -71,7 +80,6 @@ def gland_segmentation_wsi(wsi_path : str , model_path : str = 'models/glands-se
         .connect(finished)\
         .run()
     
-    print(f'Inference finished. Saved at {os.path.join(output,WSI_fn+".tiff")}')
     return
     
 if __name__ == "__main__":
