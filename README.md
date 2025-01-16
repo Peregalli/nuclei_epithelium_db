@@ -3,6 +3,8 @@
 MareFEst is an academic project within the context of the final engineering degree thesis from UdelaR (Universidad de la Republica - Uruguay).
 Developed by N.Aguilera, A.Diaz and S.Zimmer
 
+Original Title: [*Evaluación de la salud uterina en yeguas a partir de biopsias endometriales utilizando técnicas de procesamiento de imágenes y aprendizaje automático. Tesis de grado. Universidad de la República (Uruguay). Facultad de Ingeniería.*](https://www.colibri.udelar.edu.uy/jspui/handle/20.500.12008/43668)
+
 ## About the project
 
 The purpose of this project is to investigate ways to incorporate image processing techniques and machine learning models in the study of endometrial biopsies from mares, stained with hematoxylin and eosin (H&E). The tissue samples available consist of Whole Slide Images (WSI): very high-resolution images that can easily reach 30,000 million pixels per channel and occupy several gigabytes of storage.
